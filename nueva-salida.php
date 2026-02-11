@@ -8,6 +8,7 @@ $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fecha = $_POST['fecha'] ?? date('Y-m-d');
+    $nombreEntrega = trim($_POST['nombre_entrega'] ?? '');
     $nombreReceptor = trim($_POST['nombre_receptor'] ?? '');
     $lineas = [];
     if (!empty($_POST['producto_id']) && is_array($_POST['producto_id'])) {
@@ -19,13 +20,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ];
         }
     }
-    if (empty($nombreReceptor)) {
+    if (empty($nombreEntrega)) {
+        $error = 'Indique el nombre de la persona que entrega los artículos.';
+    } elseif (empty($nombreReceptor)) {
         $error = 'Indique el nombre de la persona que recibe los artículos.';
     } elseif (empty($lineas)) {
         $error = 'Añada al menos un producto con cantidad.';
     } else {
         try {
-            $salidaId = crearSalida($fecha, $nombreReceptor, $lineas);
+            $salidaId = crearSalida($fecha, $nombreEntrega, $nombreReceptor, $lineas);
             header('Location: recibo.php?id=' . $salidaId);
             exit;
         } catch (Exception $e) {
@@ -75,8 +78,12 @@ $productos = listarProductos();
           <input type="date" name="fecha" value="<?= htmlspecialchars($_POST['fecha'] ?? date('Y-m-d')) ?>" required>
         </div>
         <div class="form-group">
-          <label>Nombre de la persona que recibe los artículos</label>
-          <input type="text" name="nombre_receptor" value="<?= htmlspecialchars($_POST['nombre_receptor'] ?? '') ?>" placeholder="Nombre completo" required>
+          <label>Nombre de quien entrega (entrega el material)</label>
+          <input type="text" name="nombre_entrega" value="<?= htmlspecialchars($_POST['nombre_entrega'] ?? '') ?>" placeholder="Nombre completo de quien entrega" required>
+        </div>
+        <div class="form-group">
+          <label>Nombre de quien recibe (recibe los artículos)</label>
+          <input type="text" name="nombre_receptor" value="<?= htmlspecialchars($_POST['nombre_receptor'] ?? '') ?>" placeholder="Nombre completo de quien recibe" required>
         </div>
       </div>
 

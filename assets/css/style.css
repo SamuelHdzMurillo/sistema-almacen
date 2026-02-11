@@ -612,9 +612,15 @@ tr:hover td {
 
 .recibo-datos {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem 2rem;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem 1.5rem;
   margin-bottom: 1.5rem;
+}
+
+@media (max-width: 420px) {
+  .recibo-datos {
+    grid-template-columns: 1fr;
+  }
 }
 
 .recibo-dato-label {
@@ -641,13 +647,20 @@ tr:hover td {
   border-collapse: collapse;
   margin-bottom: 1rem;
   font-size: 0.9rem;
+  table-layout: fixed;
 }
 
 .recibo-tabla th,
 .recibo-tabla td {
-  padding: 0.6rem 0.75rem;
+  padding: 0.5rem 0.6rem;
   text-align: left;
   border: 1px solid #e0e0e0;
+  vertical-align: top;
+}
+
+.recibo-tabla td:nth-child(2) {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .recibo-tabla th {
@@ -656,13 +669,36 @@ tr:hover td {
   color: #333;
 }
 
+/* Proporción de columnas: # estrecha, Descripción ocupa el resto, Cantidad y Unidad estrechas */
+.recibo-tabla th:first-child,
 .recibo-tabla td:first-child {
-  width: 2.5rem;
+  width: 2.2em;
+  min-width: 2.2em;
   text-align: center;
 }
 
+.recibo-tabla th:nth-child(2),
+.recibo-tabla td:nth-child(2) {
+  width: auto;
+  min-width: 0;
+}
+
+.recibo-tabla th:nth-child(3),
 .recibo-tabla td:nth-child(3) {
+  width: 5em;
+  min-width: 4em;
   text-align: center;
+}
+
+.recibo-tabla th:nth-child(4),
+.recibo-tabla td:nth-child(4) {
+  width: 4em;
+  min-width: 3.5em;
+  text-align: center;
+}
+
+.recibo-tabla-wrap {
+  margin-bottom: 1rem;
 }
 
 .recibo-total {
@@ -700,6 +736,21 @@ tr:hover td {
 /* Espacio para firma física (imprimir y firmar a mano) */
 .recibo-firma-fisica {
   margin-top: 1rem;
+}
+
+/* Dos firmas: quien entrega y quien recibe */
+.recibo-firmas-doble {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem 3rem;
+  margin-top: 1.5rem;
+  max-width: 100%;
+}
+
+@media (max-width: 380px) {
+  .recibo-firmas-doble {
+    grid-template-columns: 1fr;
+  }
 }
 
 .recibo-firma-linea {
@@ -797,7 +848,7 @@ tr:hover td {
   margin-top: 0.5rem !important;
 }
 
-/* Vista hoja tipo PDF (recibo.php?hoja=1) */
+/* Vista hoja tipo PDF (recibo.php?hoja=1) - ocupa toda la hoja oficio */
 body.recibo-hoja {
   margin: 0;
   padding: 0;
@@ -806,31 +857,103 @@ body.recibo-hoja {
 }
 
 .recibo-sheet-wrap {
-  padding: 24px;
+  padding: 16px;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   box-sizing: border-box;
 }
 
+/* Formato vertical oficio: en pantalla se ve a proporción, al imprimir ocupa toda la hoja */
 .recibo-sheet {
-  width: 210mm;
-  max-width: 100%;
-  min-height: 297mm;
+  width: 216mm;
+  max-width: calc(100vw - 32px);
+  min-height: 330mm;
   background: #fff;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
-  padding: 18mm 20mm;
+  padding: 14mm 16mm 18mm;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 .recibo-hoja .recibo-header,
 .recibo-hoja .recibo-datos,
-.recibo-hoja .recibo-tabla,
 .recibo-hoja .recibo-total,
 .recibo-hoja .recibo-firma-block,
 .recibo-hoja .recibo-pie {
   max-width: none;
+  flex-shrink: 0;
+}
+
+/* Contenedor de la tabla: ocupa el espacio restante y evita que lo de abajo se corte */
+.recibo-hoja .recibo-sheet .recibo-tabla-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.5rem;
+}
+
+.recibo-hoja .recibo-sheet .recibo-tabla-wrap .recibo-tabla {
+  flex: 0 1 auto;
+  table-layout: fixed;
+}
+
+.recibo-hoja .recibo-sheet .recibo-tabla th:first-child,
+.recibo-hoja .recibo-sheet .recibo-tabla td:first-child {
+  width: 8%;
+}
+.recibo-hoja .recibo-sheet .recibo-tabla th:nth-child(2),
+.recibo-hoja .recibo-sheet .recibo-tabla td:nth-child(2) {
+  width: 58%;
+}
+.recibo-hoja .recibo-sheet .recibo-tabla th:nth-child(3),
+.recibo-hoja .recibo-sheet .recibo-tabla td:nth-child(3) {
+  width: 18%;
+}
+.recibo-hoja .recibo-sheet .recibo-tabla th:nth-child(4),
+.recibo-hoja .recibo-sheet .recibo-tabla td:nth-child(4) {
+  width: 16%;
+}
+
+/* Espaciado compacto en la hoja para que quepa todo */
+.recibo-hoja .recibo-sheet .recibo-header {
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.recibo-hoja .recibo-sheet .recibo-datos {
+  margin-bottom: 0.75rem;
+}
+.recibo-hoja .recibo-sheet .recibo-total {
+  margin-bottom: 0.75rem;
+  padding: 0.35rem 0;
+}
+.recibo-hoja .recibo-sheet .recibo-firma-block {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  padding-bottom: 0;
+  page-break-inside: avoid;
+}
+.recibo-hoja .recibo-sheet .recibo-firma-leyenda {
+  margin-bottom: 0.6rem;
+  font-size: 0.8rem;
+}
+.recibo-hoja .recibo-sheet .recibo-firmas-doble {
+  margin-top: 0.75rem;
+  gap: 1rem 2rem;
+}
+.recibo-hoja .recibo-sheet .recibo-firma-espacio {
+  height: 48px;
+}
+.recibo-hoja .recibo-sheet .recibo-pie {
+  margin-top: 1rem;
+  padding-top: 0.5rem;
+  font-size: 0.7rem;
+  page-break-inside: avoid;
 }
 
 .recibo-hoja-toolbar {
@@ -867,23 +990,48 @@ body.recibo-hoja {
     max-width: none;
   }
 
-  /* Imprimir solo la hoja (vista recibo-hoja) */
+  /* Imprimir: usar toda la hoja oficio, sin escalar */
   body.recibo-hoja {
     padding: 0;
+    margin: 0;
     background: #fff;
+    width: 216mm;
+    min-height: 330mm;
+  }
+
+  @page {
+    size: 216mm 330mm;
+    margin: 0;
   }
 
   .recibo-sheet-wrap {
     padding: 0;
+    margin: 0;
     min-height: 0;
     display: block;
+    width: 216mm;
+    height: 330mm;
   }
 
   .recibo-sheet {
-    width: 100%;
-    min-height: 0;
+    width: 216mm !important;
+    height: 330mm !important;
+    min-height: 330mm !important;
+    max-width: none !important;
     box-shadow: none;
-    padding: 0;
+    padding: 12mm 14mm 20mm 14mm !important;
+    margin: 0 !important;
+    page-break-after: avoid;
+  }
+
+  /* Que la zona de abajo no se corte: bloque de firma y pie juntos */
+  .recibo-hoja .recibo-sheet .recibo-firma-block,
+  .recibo-hoja .recibo-sheet .recibo-pie {
+    page-break-inside: avoid;
+  }
+
+  .recibo-hoja .recibo-sheet .recibo-tabla-wrap {
+    min-height: 0;
   }
 }
 

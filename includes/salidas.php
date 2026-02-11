@@ -12,14 +12,14 @@ function generarReferenciaSalida(): string {
 
 function listarSalidas(int $limite = 50): array {
     $pdo = getDB();
-    $stmt = $pdo->prepare('SELECT id, referencia, fecha, nombre_receptor, estado, created_at FROM salidas ORDER BY created_at DESC LIMIT ?');
+    $stmt = $pdo->prepare('SELECT id, referencia, fecha, nombre_entrega, nombre_receptor, estado, created_at FROM salidas ORDER BY created_at DESC LIMIT ?');
     $stmt->execute([$limite]);
     return $stmt->fetchAll();
 }
 
 function obtenerSalidaConDetalle(int $id): ?array {
     $pdo = getDB();
-    $stmt = $pdo->prepare('SELECT id, referencia, fecha, nombre_receptor, estado FROM salidas WHERE id = ?');
+    $stmt = $pdo->prepare('SELECT id, referencia, fecha, nombre_entrega, nombre_receptor, estado FROM salidas WHERE id = ?');
     $stmt->execute([$id]);
     $s = $stmt->fetch();
     if (!$s) return null;
@@ -34,13 +34,13 @@ function obtenerSalidaConDetalle(int $id): ?array {
     return $s;
 }
 
-function crearSalida(string $fecha, string $nombreReceptor, array $lineas): int {
+function crearSalida(string $fecha, string $nombreEntrega, string $nombreReceptor, array $lineas): int {
     $pdo = getDB();
     $ref = generarReferenciaSalida();
     $pdo->beginTransaction();
     try {
-        $stmt = $pdo->prepare('INSERT INTO salidas (referencia, fecha, nombre_receptor, estado) VALUES (?, ?, ?, ?)');
-        $stmt->execute([$ref, $fecha, $nombreReceptor, 'completada']);
+        $stmt = $pdo->prepare('INSERT INTO salidas (referencia, fecha, nombre_entrega, nombre_receptor, estado) VALUES (?, ?, ?, ?, ?)');
+        $stmt->execute([$ref, $fecha, $nombreEntrega, $nombreReceptor, 'completada']);
         $salidaId = (int) $pdo->lastInsertId();
         $stmt2 = $pdo->prepare('INSERT INTO detalle_salidas (salida_id, producto_id, cantidad) VALUES (?, ?, ?)');
         foreach ($lineas as $l) {

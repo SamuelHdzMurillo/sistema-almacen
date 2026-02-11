@@ -21,7 +21,10 @@ $totalUnidades = array_sum(array_column($salida['detalle'], 'cantidad'));
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= htmlspecialchars($titulo) ?></title>
-  <link rel="stylesheet" href="assets/css/style.css?v=4">
+  <link rel="stylesheet" href="assets/css/style.css?v=5">
+  <?php if ($hoja): ?>
+  <style media="print">@page { size: 216mm 330mm; margin: 0; }</style>
+  <?php endif; ?>
 </head>
 <body class="<?= $hoja ? 'recibo-hoja' : 'recibo-page' ?>">
 <?php if ($hoja): ?>
@@ -48,48 +51,66 @@ $totalUnidades = array_sum(array_column($salida['detalle'], 'cantidad'));
           <span class="recibo-dato-valor"><?= htmlspecialchars($salida['fecha']) ?></span>
         </div>
         <div class="recibo-dato">
-          <span class="recibo-dato-label">Recibe (nombre completo)</span>
+          <span class="recibo-dato-label">Entrega (quien entrega el material)</span>
+          <span class="recibo-dato-valor"><?= htmlspecialchars($salida['nombre_entrega'] ?? '—') ?></span>
+        </div>
+        <div class="recibo-dato">
+          <span class="recibo-dato-label">Recibe (quien recibe el material)</span>
           <span class="recibo-dato-valor recibo-receptor"><?= htmlspecialchars($salida['nombre_receptor']) ?></span>
         </div>
       </div>
 
-      <table class="recibo-tabla">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Descripción del artículo</th>
-            <th>Cantidad</th>
-            <th>Unidad</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php foreach ($salida['detalle'] as $i => $d): ?>
-          <tr>
-            <td><?= $i + 1 ?></td>
-            <td><?= htmlspecialchars($d['producto_nombre']) ?></td>
-            <td><?= (int)$d['cantidad'] ?></td>
-            <td><?= htmlspecialchars($d['unidad']) ?></td>
-          </tr>
-          <?php endforeach; ?>
-        </tbody>
-      </table>
+      <div class="recibo-tabla-wrap">
+        <table class="recibo-tabla">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Descripción del artículo</th>
+              <th>Cantidad</th>
+              <th>Unidad</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($salida['detalle'] as $i => $d): ?>
+            <tr>
+              <td><?= $i + 1 ?></td>
+              <td><?= htmlspecialchars($d['producto_nombre']) ?></td>
+              <td><?= (int)$d['cantidad'] ?></td>
+              <td><?= htmlspecialchars($d['unidad']) ?></td>
+            </tr>
+            <?php endforeach; ?>
+          </tbody>
+        </table>
+      </div>
       <div class="recibo-total">Total de ítems entregados: <strong><?= $totalUnidades ?></strong></div>
 
       <div class="recibo-firma-block">
-        <p class="recibo-firma-leyenda">El abajo firmante reconoce haber recibido conforme el material relacionado en este comprobante.</p>
-        <div class="recibo-firma-fisica">
-          <div class="recibo-firma-linea">
-            <span class="recibo-firma-label">Firma del receptor</span>
-            <span class="recibo-firma-espacio"></span>
+        <p class="recibo-firma-leyenda">Ambas partes firman de conformidad: quien entrega el material y quien lo recibe.</p>
+        <div class="recibo-firmas-doble">
+          <div class="recibo-firma-fisica">
+            <div class="recibo-firma-linea">
+              <span class="recibo-firma-label">Firma de quien entrega</span>
+              <span class="recibo-firma-espacio"></span>
+            </div>
+            <div class="recibo-firma-nombre">
+              <span class="recibo-firma-nombre-label">Nombre:</span>
+              <span class="recibo-firma-nombre-valor"><?= htmlspecialchars($salida['nombre_entrega'] ?? '—') ?></span>
+            </div>
           </div>
-          <div class="recibo-firma-nombre">
-            <span class="recibo-firma-nombre-label">Nombre:</span>
-            <span class="recibo-firma-nombre-valor"><?= htmlspecialchars($salida['nombre_receptor']) ?></span>
+          <div class="recibo-firma-fisica">
+            <div class="recibo-firma-linea">
+              <span class="recibo-firma-label">Firma de quien recibe</span>
+              <span class="recibo-firma-espacio"></span>
+            </div>
+            <div class="recibo-firma-nombre">
+              <span class="recibo-firma-nombre-label">Nombre:</span>
+              <span class="recibo-firma-nombre-valor"><?= htmlspecialchars($salida['nombre_receptor']) ?></span>
+            </div>
           </div>
         </div>
       </div>
 
-      <p class="recibo-pie">Documento generado por el sistema de control de almacén. Firmar en el espacio indicado al recibir el material.</p>
+      <p class="recibo-pie">Documento generado por el sistema de control de almacén. Ambas partes deben firmar en los espacios indicados.</p>
     </div>
   </div>
 
@@ -120,6 +141,7 @@ $totalUnidades = array_sum(array_column($salida['detalle'], 'cantidad'));
       <h1>Recibo generado</h1>
       <p>Se ha registrado la salida <strong><?= htmlspecialchars($salida['referencia']) ?></strong>. Abra el recibo para imprimirlo; el receptor firmará a mano en el espacio indicado en el documento.</p>
       <div class="recibo-recibido-preview">
+        <span><strong>Entrega:</strong> <?= htmlspecialchars($salida['nombre_entrega'] ?? '—') ?></span>
         <span><strong>Recibe:</strong> <?= htmlspecialchars($salida['nombre_receptor']) ?></span>
         <span><strong>Fecha:</strong> <?= htmlspecialchars($salida['fecha']) ?></span>
         <span><strong>Ítems:</strong> <?= $totalUnidades ?></span>

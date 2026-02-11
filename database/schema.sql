@@ -52,7 +52,8 @@ CREATE TABLE IF NOT EXISTS salidas (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   referencia VARCHAR(50) NOT NULL UNIQUE,
   fecha DATE NOT NULL,
-  nombre_receptor VARCHAR(150) NOT NULL,
+  nombre_entrega VARCHAR(150) NOT NULL COMMENT 'Quien entrega el material',
+  nombre_receptor VARCHAR(150) NOT NULL COMMENT 'Quien recibe el material',
   estado ENUM('completada','pendiente','cancelada') DEFAULT 'completada',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
