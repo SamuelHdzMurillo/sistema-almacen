@@ -21,7 +21,7 @@ $accionesMostradas = [];
   <div class="container">
     <header class="header">
       <div class="logo">
-        <div class="logo-icon">S</div>
+        <img src="assets/css/img/logo_cecyte_grande.webp" alt="Cecyte" class="logo-img">
         <span>Almacén Cecyte 11</span>
       </div>
       <div class="header-actions">

@@ -30,8 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body class="login-page">
   <div class="login-box">
     <div class="login-header">
-      <div class="logo-icon logo-icon-lg">S</div>
-      <h1>Almacén Cecyte 11</h1>
+      <img src="assets/css/img/logo_cecyte_grande.webp" alt="Cecyte" class="logo-img logo-img-lg">
+      <h1>Sistema de Almacén</h1>
       <p>Panel de administración</p>
     </div>
     <form method="post" class="login-form">
