@@ -68,12 +68,16 @@ CREATE TABLE IF NOT EXISTS detalle_salidas (
   FOREIGN KEY (producto_id) REFERENCES productos(id)
 );
 
+-- Índices (IF EXISTS evita error si ya existen; requiere MySQL 8.0.4+)
+DROP INDEX IF EXISTS idx_entradas_fecha ON entradas;
 CREATE INDEX idx_entradas_fecha ON entradas(fecha);
+DROP INDEX IF EXISTS idx_entradas_estado ON entradas;
 CREATE INDEX idx_entradas_estado ON entradas(estado);
+DROP INDEX IF EXISTS idx_salidas_fecha ON salidas;
 CREATE INDEX idx_salidas_fecha ON salidas(fecha);
+DROP INDEX IF EXISTS idx_salidas_estado ON salidas;
 CREATE INDEX idx_salidas_estado ON salidas(estado);
-CREATE INDEX idx_detalle_entradas_entrada ON detalle_entradas(entrada_id);
-CREATE INDEX idx_detalle_salidas_salida ON detalle_salidas(salida_id);
+-- No crear/drop índices en entrada_id y salida_id: los exige la FK y no se pueden borrar
 
 SET FOREIGN_KEY_CHECKS = 1;
 
@@ -83,8 +87,5 @@ INSERT INTO usuarios (usuario, clave, nombre) VALUES
 
 -- Productos de ejemplo
 INSERT INTO productos (codigo, nombre, descripcion, unidad) VALUES
-('PROD-001', 'Tuberías de acero 6m', 'Tubería de acero 6 metros', 'und'),
-('PROD-002', 'Bloques de hormigón', 'Bloques para construcción', 'und'),
-('PROD-003', 'Cables eléctricos 100m', 'Rollos de cable 100m', 'rollo'),
-('PROD-004', 'Bidones de pintura', 'Bidón 20L', 'und'),
-('PROD-005', 'Azulejos cerámicos', 'Caja 1m²', 'caja');
+('PROD-001', 'jabon en polvo', 'jabon en polvo para lavar la ropa', 'und');
+
