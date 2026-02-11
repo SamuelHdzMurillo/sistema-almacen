@@ -15,14 +15,36 @@ function obtenerProducto(int $id): ?array {
     return $r ?: null;
 }
 
-function crearProducto(array $d): int {
+/**
+ * Obtiene el siguiente código de producto según el último ingresado.
+ * Si el último es PROD-001 devuelve PROD-002; si no hay productos o no hay patrón, devuelve PROD-001.
+ */
+function obtenerSiguienteCodigoProducto(): string {
     $pdo = getDB();
-    $stmt = $pdo->prepare('INSERT INTO productos (codigo, nombre, descripcion, unidad) VALUES (?, ?, ?, ?)');
+    $stmt = $pdo->query('SELECT codigo FROM productos WHERE codigo IS NOT NULL AND codigo != "" ORDER BY id DESC LIMIT 1');
+    $row = $stmt->fetch();
+    if (!$row || empty($row['codigo'])) {
+        return 'PROD-001';
+    }
+    $codigo = trim($row['codigo']);
+    if (preg_match('/^(.+?)(\d+)$/', $codigo, $m)) {
+        $prefijo = $m[1];
+        $numero = (int) $m[2];
+        $longitud = strlen($m[2]);
+        return $prefijo . str_pad($numero + 1, $longitud, '0', STR_PAD_LEFT);
+    }
+    return 'PROD-001';
+}
+
+function crearProducto(array $d, ?int $usuarioId = null): int {
+    $pdo = getDB();
+    $stmt = $pdo->prepare('INSERT INTO productos (codigo, nombre, descripcion, unidad, created_by) VALUES (?, ?, ?, ?, ?)');
     $stmt->execute([
         $d['codigo'] ?? null,
         $d['nombre'],
         $d['descripcion'] ?? null,
-        $d['unidad'] ?? 'und'
+        $d['unidad'] ?? 'und',
+        $usuarioId
     ]);
     return (int) $pdo->lastInsertId();
 }

@@ -6,6 +6,8 @@ require_once __DIR__ . '/includes/transacciones.php';
 $tipo = $_GET['tipo'] ?? null;
 $busqueda = trim($_GET['q'] ?? '');
 $transacciones = listarTransaccionesRecientes(50, $tipo, $busqueda !== '' ? $busqueda : null);
+$mensajeCancelado = isset($_GET['cancelado']) && $_GET['cancelado'] === '1';
+$accionesMostradas = [];
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -38,6 +40,9 @@ $transacciones = listarTransaccionesRecientes(50, $tipo, $busqueda !== '' ? $bus
 
     <section class="section-header">
       <h2>Transacciones recientes</h2>
+      <?php if ($mensajeCancelado): ?>
+        <div class="alert alert-success" style="margin-bottom:1rem;">Transacción cancelada. El stock se ha actualizado.</div>
+      <?php endif; ?>
       <div class="search-filter">
         <form method="get" action="transacciones.php" style="display:flex; gap:0.5rem; align-items:center;">
           <input type="hidden" name="tipo" value="<?= htmlspecialchars($tipo ?? '') ?>">
@@ -61,14 +66,22 @@ $transacciones = listarTransaccionesRecientes(50, $tipo, $busqueda !== '' ? $bus
             <th>Artículo</th>
             <th>Cant.</th>
             <th>Fecha</th>
+            <th>Hora</th>
+            <th>Registrado por</th>
             <th>Estado</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           <?php if (empty($transacciones)): ?>
-            <tr><td colspan="6" class="empty-msg">No hay transacciones con los filtros indicados.</td></tr>
+            <tr><td colspan="9" class="empty-msg">No hay transacciones con los filtros indicados.</td></tr>
           <?php else: ?>
             <?php foreach ($transacciones as $t): ?>
+            <?php
+              $key = $t['tipo'] . '-' . $t['id'];
+              $mostrarAcciones = !isset($accionesMostradas[$key]);
+              if ($mostrarAcciones) $accionesMostradas[$key] = true;
+            ?>
             <tr>
               <td><?= htmlspecialchars($t['referencia']) ?></td>
               <td>
@@ -79,7 +92,19 @@ $transacciones = listarTransaccionesRecientes(50, $tipo, $busqueda !== '' ? $bus
               <td><?= htmlspecialchars($t['item_nombre']) ?></td>
               <td class="<?= $t['tipo'] === 'in' ? 'qty-pos' : 'qty-neg' ?>"><?= $t['cantidad_show'] ?></td>
               <td><?= htmlspecialchars($t['fecha']) ?></td>
+              <td><?= !empty($t['created_at']) ? date('H:i', strtotime($t['created_at'])) : '—' ?></td>
+              <td><?= htmlspecialchars($t['created_by_nombre'] ?? '—') ?></td>
               <td><span class="status-badge status-<?= $t['estado'] ?>"><?= $t['estado'] ?></span></td>
+              <td>
+                <?php if ($mostrarAcciones): ?>
+                  <a href="ver-transaccion.php?tipo=<?= urlencode($t['tipo']) ?>&id=<?= (int)$t['id'] ?>" class="btn btn-secondary btn-sm">Ver</a>
+                  <?php if ($t['tipo'] === 'out'): ?>
+                    <a href="recibo.php?id=<?= (int)$t['id'] ?>&hoja=1" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" title="Reimprimir recibo">Imprimir</a>
+                  <?php endif; ?>
+                <?php else: ?>
+                  —
+                <?php endif; ?>
+              </td>
             </tr>
             <?php endforeach; ?>
           <?php endif; ?>

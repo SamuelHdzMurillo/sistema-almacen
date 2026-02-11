@@ -9,10 +9,12 @@ function listarTransaccionesRecientes(int $limite = 20, ?string $tipo = null, ?s
     if ($tipo !== 'out') {
         $sql = "
             SELECT e.id, e.referencia, e.fecha, e.responsable AS persona, e.estado,
-                   'in' AS tipo, de.cantidad, p.nombre AS item_nombre
+                   'in' AS tipo, de.cantidad, p.nombre AS item_nombre,
+                   e.created_at, e.created_by, u.nombre AS created_by_nombre
             FROM entradas e
             JOIN detalle_entradas de ON de.entrada_id = e.id
             JOIN productos p ON p.id = de.producto_id
+            LEFT JOIN usuarios u ON u.id = e.created_by
             WHERE 1=1
         ";
         $params = [];
@@ -30,10 +32,12 @@ function listarTransaccionesRecientes(int $limite = 20, ?string $tipo = null, ?s
     if ($tipo !== 'in') {
         $sql = "
             SELECT s.id, s.referencia, s.fecha, s.nombre_receptor AS persona, s.estado,
-                   'out' AS tipo, ds.cantidad, p.nombre AS item_nombre
+                   'out' AS tipo, ds.cantidad, p.nombre AS item_nombre,
+                   s.created_at, s.created_by, u.nombre AS created_by_nombre
             FROM salidas s
             JOIN detalle_salidas ds ON ds.salida_id = s.id
             JOIN productos p ON p.id = ds.producto_id
+            LEFT JOIN usuarios u ON u.id = s.created_by
             WHERE 1=1
         ";
         $params = [];

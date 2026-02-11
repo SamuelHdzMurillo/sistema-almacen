@@ -28,7 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Añada al menos un producto con cantidad.';
     } else {
         try {
-            $salidaId = crearSalida($fecha, $nombreEntrega, $nombreReceptor, $lineas);
+            $usuarioId = isset($_SESSION['usuario_id']) ? (int)$_SESSION['usuario_id'] : null;
+            $salidaId = crearSalida($fecha, $nombreEntrega, $nombreReceptor, $lineas, $usuarioId);
             header('Location: recibo.php?id=' . $salidaId);
             exit;
         } catch (Exception $e) {

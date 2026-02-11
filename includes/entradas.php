@@ -12,14 +12,14 @@ function generarReferenciaEntrada(): string {
 
 function listarEntradas(int $limite = 50): array {
     $pdo = getDB();
-    $stmt = $pdo->prepare('SELECT id, referencia, fecha, responsable, estado, created_at FROM entradas ORDER BY created_at DESC LIMIT ?');
+    $stmt = $pdo->prepare('SELECT e.id, e.referencia, e.fecha, e.responsable, e.estado, e.created_at, e.updated_at, e.created_by, u.nombre AS created_by_nombre FROM entradas e LEFT JOIN usuarios u ON u.id = e.created_by ORDER BY e.created_at DESC LIMIT ?');
     $stmt->execute([$limite]);
     return $stmt->fetchAll();
 }
 
 function obtenerEntradaConDetalle(int $id): ?array {
     $pdo = getDB();
-    $stmt = $pdo->prepare('SELECT id, referencia, fecha, responsable, estado FROM entradas WHERE id = ?');
+    $stmt = $pdo->prepare('SELECT e.id, e.referencia, e.fecha, e.responsable, e.estado, e.created_at, e.updated_at, e.created_by, u.nombre AS created_by_nombre FROM entradas e LEFT JOIN usuarios u ON u.id = e.created_by WHERE e.id = ?');
     $stmt->execute([$id]);
     $e = $stmt->fetch();
     if (!$e) return null;
@@ -34,18 +34,18 @@ function obtenerEntradaConDetalle(int $id): ?array {
     return $e;
 }
 
-function crearEntrada(string $fecha, string $responsable, array $lineas): int {
+function crearEntrada(string $fecha, string $responsable, array $lineas, ?int $usuarioId = null): int {
     $pdo = getDB();
     $ref = generarReferenciaEntrada();
     $pdo->beginTransaction();
     try {
-        $stmt = $pdo->prepare('INSERT INTO entradas (referencia, fecha, responsable, estado) VALUES (?, ?, ?, ?)');
-        $stmt->execute([$ref, $fecha, $responsable, 'completada']);
+        $stmt = $pdo->prepare('INSERT INTO entradas (referencia, fecha, responsable, estado, created_by) VALUES (?, ?, ?, ?, ?)');
+        $stmt->execute([$ref, $fecha, $responsable, 'completada', $usuarioId]);
         $entradaId = (int) $pdo->lastInsertId();
-        $stmt2 = $pdo->prepare('INSERT INTO detalle_entradas (entrada_id, producto_id, cantidad) VALUES (?, ?, ?)');
+        $stmt2 = $pdo->prepare('INSERT INTO detalle_entradas (entrada_id, producto_id, cantidad, created_by) VALUES (?, ?, ?, ?)');
         foreach ($lineas as $l) {
             if (empty($l['producto_id']) || (int)($l['cantidad'] ?? 0) <= 0) continue;
-            $stmt2->execute([$entradaId, $l['producto_id'], (int)$l['cantidad']]);
+            $stmt2->execute([$entradaId, $l['producto_id'], (int)$l['cantidad'], $usuarioId]);
         }
         $pdo->commit();
         return $entradaId;
@@ -65,4 +65,12 @@ function totalEntradasMesAnterior(): int {
     $pdo = getDB();
     $stmt = $pdo->query("SELECT COALESCE(SUM(cantidad), 0) AS t FROM detalle_entradas de JOIN entradas e ON e.id = de.entrada_id WHERE e.estado = 'completada' AND e.fecha >= DATE_SUB(CURDATE(), INTERVAL 2 MONTH) AND e.fecha < DATE_SUB(CURDATE(), INTERVAL 1 MONTH)");
     return (int) $stmt->fetch()['t'];
+}
+
+/** Marca una entrada como cancelada. El stock dejará de contar sus ítems. */
+function cancelarEntrada(int $id): bool {
+    $pdo = getDB();
+    $stmt = $pdo->prepare('UPDATE entradas SET estado = ? WHERE id = ? AND estado = ?');
+    $stmt->execute(['cancelada', $id, 'completada']);
+    return $stmt->rowCount() > 0;
 }

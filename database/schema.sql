@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS usuarios (
   usuario VARCHAR(80) NOT NULL UNIQUE,
   clave VARCHAR(255) NOT NULL,
   nombre VARCHAR(150),
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- Tabla: Productos
@@ -23,7 +24,10 @@ CREATE TABLE IF NOT EXISTS productos (
   nombre VARCHAR(150) NOT NULL,
   descripcion TEXT,
   unidad VARCHAR(20) DEFAULT 'und',
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  created_by INT UNSIGNED NULL COMMENT 'Usuario que registró/creó el producto',
+  FOREIGN KEY (created_by) REFERENCES usuarios(id) ON DELETE SET NULL
 );
 
 -- Tabla: Entradas (cabecera)
@@ -33,7 +37,10 @@ CREATE TABLE IF NOT EXISTS entradas (
   fecha DATE NOT NULL,
   responsable VARCHAR(150) NOT NULL,
   estado ENUM('completada','pendiente','cancelada') DEFAULT 'completada',
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  created_by INT UNSIGNED NULL COMMENT 'Usuario que registró la entrada',
+  FOREIGN KEY (created_by) REFERENCES usuarios(id) ON DELETE SET NULL
 );
 
 -- Tabla: Detalle de entradas (ítems por entrada)
@@ -43,8 +50,11 @@ CREATE TABLE IF NOT EXISTS detalle_entradas (
   producto_id INT UNSIGNED NOT NULL,
   cantidad INT UNSIGNED NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  created_by INT UNSIGNED NULL COMMENT 'Usuario que registró el detalle',
   FOREIGN KEY (entrada_id) REFERENCES entradas(id) ON DELETE CASCADE,
-  FOREIGN KEY (producto_id) REFERENCES productos(id)
+  FOREIGN KEY (producto_id) REFERENCES productos(id),
+  FOREIGN KEY (created_by) REFERENCES usuarios(id) ON DELETE SET NULL
 );
 
 -- Tabla: Salidas (cabecera)
@@ -55,7 +65,10 @@ CREATE TABLE IF NOT EXISTS salidas (
   nombre_entrega VARCHAR(150) NOT NULL COMMENT 'Quien entrega el material',
   nombre_receptor VARCHAR(150) NOT NULL COMMENT 'Quien recibe el material',
   estado ENUM('completada','pendiente','cancelada') DEFAULT 'completada',
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  created_by INT UNSIGNED NULL COMMENT 'Usuario que registró la salida',
+  FOREIGN KEY (created_by) REFERENCES usuarios(id) ON DELETE SET NULL
 );
 
 -- Tabla: Detalle de salidas (ítems por salida)
@@ -65,8 +78,11 @@ CREATE TABLE IF NOT EXISTS detalle_salidas (
   producto_id INT UNSIGNED NOT NULL,
   cantidad INT UNSIGNED NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  created_by INT UNSIGNED NULL COMMENT 'Usuario que registró el detalle',
   FOREIGN KEY (salida_id) REFERENCES salidas(id) ON DELETE CASCADE,
-  FOREIGN KEY (producto_id) REFERENCES productos(id)
+  FOREIGN KEY (producto_id) REFERENCES productos(id),
+  FOREIGN KEY (created_by) REFERENCES usuarios(id) ON DELETE SET NULL
 );
 
 -- Índices (IF EXISTS evita error si ya existen; requiere MySQL 8.0.4+)

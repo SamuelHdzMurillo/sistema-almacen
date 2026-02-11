@@ -10,7 +10,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear'])) {
     $codigo = trim($_POST['codigo'] ?? '') ?: null;
     if ($nombre !== '') {
         try {
-            crearProducto(['nombre' => $nombre, 'codigo' => $codigo, 'descripcion' => trim($_POST['descripcion'] ?? ''), 'unidad' => $_POST['unidad'] ?? 'und']);
+            $usuarioId = isset($_SESSION['usuario_id']) ? (int)$_SESSION['usuario_id'] : null;
+            crearProducto(['nombre' => $nombre, 'codigo' => $codigo, 'descripcion' => trim($_POST['descripcion'] ?? ''), 'unidad' => $_POST['unidad'] ?? 'und'], $usuarioId);
             $mensaje = 'Producto creado correctamente.';
         } catch (Exception $e) {
             $mensaje = 'Error: ' . $e->getMessage();
@@ -20,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear'])) {
 
 $productos = listarProductos();
 $inventario = inventarioPorProducto();
+$siguienteCodigo = obtenerSiguienteCodigoProducto();
 $stockPorId = [];
 foreach ($inventario as $inv) {
     $stockPorId[(int)$inv['id']] = (int)$inv['stock'];
@@ -66,7 +68,7 @@ foreach ($inventario as $inv) {
         </div>
         <div class="form-group">
           <label>Código (opcional)</label>
-          <input type="text" name="codigo" placeholder="Ej: PROD-001">
+          <input type="text" name="codigo" value="<?= htmlspecialchars($siguienteCodigo) ?>" placeholder="<?= htmlspecialchars($siguienteCodigo) ?>">
         </div>
         <div class="form-group">
           <label>Descripción (opcional)</label>

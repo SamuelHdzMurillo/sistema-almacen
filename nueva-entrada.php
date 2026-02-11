@@ -26,7 +26,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Añada al menos un producto con cantidad.';
     } else {
         try {
-            crearEntrada($fecha, $responsable, $lineas);
+            $usuarioId = isset($_SESSION['usuario_id']) ? (int)$_SESSION['usuario_id'] : null;
+            crearEntrada($fecha, $responsable, $lineas, $usuarioId);
             $mensaje = 'Entrada registrada correctamente (ref. generada automáticamente).';
         } catch (Exception $e) {
             $error = 'Error al guardar: ' . $e->getMessage();
