@@ -8,10 +8,7 @@ require_once __DIR__ . '/includes/transacciones.php';
 
 $totalItems = totalItems();
 $cap = capacidadTotal();
-$entradasMes = totalEntradasEsteMes();
 $transacciones = listarTransaccionesRecientes(10);
-$entradasAntes = totalEntradasMesAnterior();
-$pctEntradas = $entradasAntes > 0 ? round((($entradasMes - $entradasAntes) / $entradasAntes) * 100) : 0;
 
 $pdo = getDB();
 $totalEntradas = (int) $pdo->query("SELECT COALESCE(SUM(de.cantidad), 0) AS t FROM detalle_entradas de JOIN entradas e ON e.id = de.entrada_id WHERE e.estado = 'completada'")->fetch()['t'];
@@ -31,7 +28,7 @@ $totalSalidas = (int) $pdo->query("SELECT COALESCE(SUM(ds.cantidad), 0) AS t FRO
       <div class="logo">
         <div class="logo-icon">S</div>
         <span>Almacén Cecyte 11</span>
-        <span class="logo-sub">Admin Dashboard</span>
+        <span class="logo-sub">Panel de administración</span>
       </div>
       <div class="header-actions">
         <a href="nueva-transaccion.php" class="btn btn-primary">+ Nueva transacción</a>
@@ -40,7 +37,7 @@ $totalSalidas = (int) $pdo->query("SELECT COALESCE(SUM(ds.cantidad), 0) AS t FRO
     </header>
 
     <nav class="nav-links">
-      <a href="index.php" class="active">Dashboard</a>
+      <a href="index.php" class="active">Inicio</a>
       <a href="transacciones.php">Transacciones</a>
       <a href="nueva-entrada.php">Nueva entrada</a>
       <a href="nueva-salida.php">Nueva salida</a>
@@ -48,22 +45,20 @@ $totalSalidas = (int) $pdo->query("SELECT COALESCE(SUM(ds.cantidad), 0) AS t FRO
     </nav>
 
     <section class="cards-grid">
-      <div class="card card-large">
-        <div class="card-sub">Total artículos</div>
-        <div class="card-value"><?= number_format($totalItems) ?></div>
-        <div class="card-sub">En almacén</div>
+      <div class="card card-destacada">
+        <div class="card-etiqueta">Total artículos</div>
+        <div class="card-valor"><?= number_format($totalItems) ?></div>
+        <div class="card-desc">En almacén</div>
       </div>
       <div class="card">
-        <div class="card-sub">Artículos entrados</div>
-        <div class="card-value"><?= number_format($totalEntradas) ?></div>
-        <div class="card-sub">
-          <span class="badge badge-green">+<?= $pctEntradas ?>% este mes</span>
-        </div>
+        <div class="card-etiqueta">Artículos entrados</div>
+        <div class="card-valor"><?= number_format($totalEntradas) ?></div>
+        <div class="card-desc">Total acumulado</div>
       </div>
       <div class="card">
-        <div class="card-sub">Artículos salidos</div>
-        <div class="card-value"><?= number_format($totalSalidas) ?></div>
-        <div class="card-sub"><span class="badge badge-green">Este mes</span></div>
+        <div class="card-etiqueta">Artículos salidos</div>
+        <div class="card-valor"><?= number_format($totalSalidas) ?></div>
+        <div class="card-desc">Total acumulado</div>
       </div>
     </section>
 
@@ -92,7 +87,7 @@ $totalSalidas = (int) $pdo->query("SELECT COALESCE(SUM(ds.cantidad), 0) AS t FRO
               <td><?= htmlspecialchars($t['referencia']) ?></td>
               <td>
                 <span class="type-badge <?= $t['tipo'] ?>">
-                  <?= $t['tipo'] === 'in' ? '↓ Stock In' : '↑ Stock Out' ?>
+                  <?= $t['tipo'] === 'in' ? 'Entrada' : 'Salida' ?>
                 </span>
               </td>
               <td><?= htmlspecialchars($t['item_nombre']) ?></td>

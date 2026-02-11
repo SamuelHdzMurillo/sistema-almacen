@@ -120,27 +120,57 @@ body {
   justify-content: center;
 }
 
-/* Cards de métricas */
+/* Cards de métricas (widgets del dashboard) */
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
   margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .card {
   background: #ffffff;
-  border: 1px solid #dddddd;
+  border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 1.25rem;
+  padding: 1.5rem;
   box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  min-height: 140px;
 }
 
-.card-large .card-value {
-  font-size: 2rem;
+.card-etiqueta {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.5rem;
+}
+
+.card-valor {
+  font-size: 1.75rem;
   font-weight: 700;
-  margin: 0.25rem 0;
   color: var(--text-primary);
+  margin: 0.25rem 0;
+  line-height: 1.2;
+}
+
+.card-destacada .card-valor {
+  font-size: 2rem;
+}
+
+.card-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: auto;
+  padding-top: 0.5rem;
 }
 
 .card-sub {
