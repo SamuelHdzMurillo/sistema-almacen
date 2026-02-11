@@ -19,7 +19,7 @@ $totalSalidas = (int) $pdo->query("SELECT COALESCE(SUM(ds.cantidad), 0) AS t FRO
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel de control - Almacén Cecyte 11</title>
+  <title>Panel de control - Sistema de Almacén</title>
   <link rel="stylesheet" href="assets/css/style.css?v=2">
 </head>
 <body>

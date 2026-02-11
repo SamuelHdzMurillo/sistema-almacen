@@ -33,7 +33,7 @@ $puedeCancelar = ($estado === 'completada');
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><?= htmlspecialchars($titulo) ?> - Almacén Cecyte 11</title>
+  <title><?= htmlspecialchars($titulo) ?> - Sistema de Almacén</title>
   <link rel="stylesheet" href="assets/css/style.css?v=2">
 </head>
 <body>
@@ -41,7 +41,7 @@ $puedeCancelar = ($estado === 'completada');
     <header class="header">
       <div class="logo">
         <img src="assets/css/img/logo_cecyte_grande.webp" alt="Cecyte" class="logo-img">
-        <span>Almacén Cecyte 11</span>
+        <span>Sistema de Almacén</span>
       </div>
       <div class="header-actions">
         <a href="transacciones.php" class="btn btn-secondary">← Volver a transacciones</a>

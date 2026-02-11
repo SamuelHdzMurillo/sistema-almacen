@@ -1,4 +1,4 @@
-# Almacén Cecyte 11
+# Sistema de Almacén
 
 Sistema sencillo para el control de entradas y salidas de productos, con inventario actualizado automáticamente, historial de movimientos y recibo de salidas.
 

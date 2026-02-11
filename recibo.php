@@ -35,7 +35,7 @@ $totalUnidades = array_sum(array_column($salida['detalle'], 'cantidad'));
         <div class="recibo-header-logo">
           <img src="assets/css/img/logo_cecyte_grande.webp" alt="Cecyte" class="logo-img">
           <div>
-            <strong>Almacén Cecyte 11</strong>
+            <strong>Sistema de Almacén</strong>
             <span class="recibo-subtitulo">Comprobante de entrega de material</span>
           </div>
         </div>
@@ -132,7 +132,7 @@ $totalUnidades = array_sum(array_column($salida['detalle'], 'cantidad'));
     <header class="header">
       <div class="logo">
         <img src="assets/css/img/logo_cecyte_grande.webp" alt="Cecyte" class="logo-img">
-        <span>Almacén Cecyte 11</span>
+        <span>Sistema de Almacén</span>
       </div>
       <a href="transacciones.php" class="btn btn-secondary">Volver a transacciones</a>
     </header>

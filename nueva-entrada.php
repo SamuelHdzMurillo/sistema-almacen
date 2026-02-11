@@ -42,7 +42,7 @@ $productos = listarProductos();
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nueva entrada - Almacén Cecyte 11</title>
+  <title>Nueva entrada - Sistema de Almacén</title>
   <link rel="stylesheet" href="assets/css/style.css?v=2">
 </head>
 <body>
@@ -50,7 +50,7 @@ $productos = listarProductos();
     <header class="header">
       <div class="logo">
         <img src="assets/css/img/logo_cecyte_grande.webp" alt="Cecyte" class="logo-img">
-        <span>Almacén Cecyte 11</span>
+        <span>Sistema de Almacén</span>
       </div>
       <div class="header-actions">
         <a href="nueva-transaccion.php" class="btn btn-primary">+ Nueva transacción</a>

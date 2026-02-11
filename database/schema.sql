@@ -1,4 +1,4 @@
--- Sistema de Almacén Cecyte 11 - Esquema de base de datos
+-- Sistema de Almacén - Esquema de base de datos
 -- Ejecutar en MySQL (XAMPP)
 
 SET NAMES utf8mb4;
