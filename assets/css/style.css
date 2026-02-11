@@ -558,6 +558,335 @@ tr:hover td {
   margin-top: 1rem;
 }
 
+/* Recibo mejorado (entrega con firma) */
+.recibo-page .recibo-mejorado {
+  max-width: 620px;
+  padding: 2rem 2.5rem;
+}
+
+.recibo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 2px solid #1a1a1a;
+}
+
+.recibo-header-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.recibo-header-logo .logo-icon {
+  flex-shrink: 0;
+}
+
+.recibo-subtitulo {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: #555;
+  margin-top: 0.15rem;
+}
+
+.recibo-ref {
+  text-align: right;
+}
+
+.recibo-ref-label {
+  display: block;
+  font-size: 0.75rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.recibo-ref-valor {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.recibo-datos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.recibo-dato-label {
+  display: block;
+  font-size: 0.75rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.2rem;
+}
+
+.recibo-dato-valor {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.recibo-receptor {
+  font-size: 1.05rem;
+}
+
+.recibo-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.recibo-tabla th,
+.recibo-tabla td {
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  border: 1px solid #e0e0e0;
+}
+
+.recibo-tabla th {
+  background: #f5f5f5;
+  font-weight: 600;
+  color: #333;
+}
+
+.recibo-tabla td:first-child {
+  width: 2.5rem;
+  text-align: center;
+}
+
+.recibo-tabla td:nth-child(3) {
+  text-align: center;
+}
+
+.recibo-total {
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+  padding: 0.5rem 0;
+}
+
+/* Zona de firma */
+.recibo-firma-block {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #ddd;
+}
+
+.recibo-firma-leyenda {
+  font-size: 0.85rem;
+  color: #555;
+  margin: 0 0 1rem 0;
+  line-height: 1.4;
+}
+
+.recibo-firma-zona {
+  margin-bottom: 0.75rem;
+}
+
+.recibo-firma-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+/* Espacio para firma física (imprimir y firmar a mano) */
+.recibo-firma-fisica {
+  margin-top: 1rem;
+}
+
+.recibo-firma-linea {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-width: 280px;
+}
+
+.recibo-firma-linea .recibo-firma-label {
+  margin-bottom: 0;
+}
+
+.recibo-firma-espacio {
+  display: block;
+  height: 60px;
+  border-bottom: 2px solid #1a1a1a;
+  margin-top: 0.25rem;
+}
+
+.recibo-firma-nombre {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0;
+  border-top: 1px dashed #ccc;
+}
+
+.recibo-firma-nombre-label {
+  font-size: 0.8rem;
+  color: #666;
+  margin-right: 0.5rem;
+}
+
+.recibo-firma-nombre-valor {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.recibo-pie {
+  margin: 1.5rem 0 0;
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.recibo-acciones {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+/* Vista "Recibo generado" (página principal del recibo) */
+.recibo-recibido-msg {
+  max-width: 520px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+
+.recibo-recibido-msg h1 {
+  margin: 0 0 1rem 0;
+  font-size: 1.5rem;
+  color: var(--text-primary);
+}
+
+.recibo-recibido-msg p {
+  margin: 0 0 1rem 0;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.recibo-recibido-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  margin: 1.25rem 0;
+  padding: 1rem;
+  background: #f5f5f5;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.recibo-recibido-accion {
+  margin: 1.5rem 0 0.5rem 0 !important;
+}
+
+.recibo-recibido-accion .btn-lg {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+}
+
+.recibo-recibido-hint {
+  font-size: 0.85rem;
+  color: #888;
+  margin-top: 0.5rem !important;
+}
+
+/* Vista hoja tipo PDF (recibo.php?hoja=1) */
+body.recibo-hoja {
+  margin: 0;
+  padding: 0;
+  background: #6b6b6b;
+  min-height: 100vh;
+}
+
+.recibo-sheet-wrap {
+  padding: 24px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.recibo-sheet {
+  width: 210mm;
+  max-width: 100%;
+  min-height: 297mm;
+  background: #fff;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+  padding: 18mm 20mm;
+  box-sizing: border-box;
+}
+
+.recibo-hoja .recibo-header,
+.recibo-hoja .recibo-datos,
+.recibo-hoja .recibo-tabla,
+.recibo-hoja .recibo-total,
+.recibo-hoja .recibo-firma-block,
+.recibo-hoja .recibo-pie {
+  max-width: none;
+}
+
+.recibo-hoja-toolbar {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 0 1rem 1rem;
+}
+
+.no-print {
+  display: block;
+}
+
+@media print {
+  body.recibo-page,
+  body.recibo-hoja {
+    background: #fff;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .recibo-page .container {
+    padding: 0;
+    max-width: none;
+  }
+
+  .recibo-mejorado {
+    box-shadow: none;
+    border: 1px solid #ccc;
+    max-width: none;
+  }
+
+  /* Imprimir solo la hoja (vista recibo-hoja) */
+  body.recibo-hoja {
+    padding: 0;
+    background: #fff;
+  }
+
+  .recibo-sheet-wrap {
+    padding: 0;
+    min-height: 0;
+    display: block;
+  }
+
+  .recibo-sheet {
+    width: 100%;
+    min-height: 0;
+    box-shadow: none;
+    padding: 0;
+  }
+}
+
 .empty-msg {
   text-align: center;
   color: var(--text-muted);
