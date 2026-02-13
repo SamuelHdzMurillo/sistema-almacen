@@ -56,6 +56,7 @@ foreach ($inventario as $inv) {
     <nav class="nav-links">
       <a href="index.php">Dashboard</a>
       <a href="transacciones.php">Transacciones</a>
+      <a href="inventario.php">Inventario</a>
       <a href="nueva-entrada.php">Nueva entrada</a>
       <a href="nueva-salida.php">Nueva salida</a>
       <a href="productos.php" class="active">Productos</a>

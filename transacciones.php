@@ -33,6 +33,7 @@ $accionesMostradas = [];
     <nav class="nav-links">
       <a href="index.php">Dashboard</a>
       <a href="transacciones.php" class="active">Transacciones</a>
+      <a href="inventario.php">Inventario</a>
       <a href="nueva-entrada.php">Nueva entrada</a>
       <a href="nueva-salida.php">Nueva salida</a>
       <a href="productos.php">Productos</a>

@@ -52,6 +52,7 @@ $puedeCancelar = ($estado === 'completada');
       <a href="transacciones.php" class="active">Transacciones</a>
       <a href="nueva-entrada.php">Nueva entrada</a>
       <a href="nueva-salida.php">Nueva salida</a>
+      <a href="inventario.php">Inventario</a>
       <a href="productos.php">Productos</a>
     </nav>
 

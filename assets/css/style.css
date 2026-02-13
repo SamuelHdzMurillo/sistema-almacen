@@ -846,6 +846,61 @@ tr:hover td {
   color: #888;
 }
 
+/* Recibo mensual: 4 datos en cuadrícula 2x2 */
+body.recibo-mes .recibo-datos {
+  grid-template-columns: 1fr 1fr;
+}
+/* En pantalla, la hoja crece con el contenido (varias páginas al imprimir) */
+body.recibo-mes .recibo-sheet {
+  min-height: 0;
+}
+
+/* Título de sección en recibo mensual (Entradas / Salidas) */
+.recibo-seccion-titulo {
+  margin: 1.25rem 0 0.5rem 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #333;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid #ddd;
+}
+.recibo-seccion-titulo:first-of-type {
+  margin-top: 0;
+}
+.recibo-sin-movimientos {
+  margin: 1rem 0;
+  padding: 1rem;
+  font-size: 0.9rem;
+  color: #666;
+  font-style: italic;
+  background: #f9f9f9;
+  border-radius: 6px;
+}
+
+/* Descripción en recibo mensual: cabecera + lista de productos */
+.recibo-cell-desc {
+  vertical-align: top;
+}
+.recibo-desc-linea1 {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+.recibo-lista-detalle {
+  margin: 0;
+  padding-left: 1.25rem;
+  list-style: disc;
+  font-size: 0.9em;
+  color: #444;
+}
+.recibo-lista-detalle li {
+  margin-bottom: 0.2rem;
+  line-height: 1.35;
+}
+.recibo-lista-detalle li:last-child {
+  margin-bottom: 0;
+}
+
 .recibo-acciones {
   text-align: center;
   margin-top: 1rem;
@@ -1042,7 +1097,12 @@ body.recibo-hoja {
     max-width: none;
   }
 
-  /* Imprimir: usar toda la hoja oficio, sin escalar */
+  /* Imprimir: recibo mensual usa tamaño carta */
+  body.recibo-mes.recibo-hoja {
+    width: auto;
+    min-height: 0;
+  }
+  /* Imprimir: recibo de salida (una hoja oficio) */
   body.recibo-hoja {
     padding: 0;
     margin: 0;
@@ -1053,7 +1113,7 @@ body.recibo-hoja {
 
   @page {
     size: 216mm 330mm;
-    margin: 0;
+    margin: 15mm;
   }
 
   .recibo-sheet-wrap {
@@ -1085,12 +1145,338 @@ body.recibo-hoja {
   .recibo-hoja .recibo-sheet .recibo-tabla-wrap {
     min-height: 0;
   }
+
+  /* Recibo mensual: varias hojas, nada cortado */
+  body.recibo-mes .recibo-sheet-wrap {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+  body.recibo-mes .recibo-sheet {
+    height: auto !important;
+    min-height: 0 !important;
+    page-break-after: auto;
+  }
+  /* Repetir encabezado de tabla en cada hoja */
+  body.recibo-mes .recibo-tabla thead {
+    display: table-header-group;
+  }
+  /* No cortar una fila a la mitad: si no cabe, pasa a la siguiente hoja */
+  body.recibo-mes .recibo-tr-documento {
+    page-break-inside: avoid;
+  }
+  /* No cortar título de sección ni total ni firma ni pie */
+  body.recibo-mes .recibo-seccion-titulo,
+  body.recibo-mes .recibo-total,
+  body.recibo-mes .recibo-firma-block,
+  body.recibo-mes .recibo-pie {
+    page-break-inside: avoid;
+  }
+  body.recibo-mes .recibo-firma-block {
+    page-break-before: auto;
+  }
 }
 
 .empty-msg {
   text-align: center;
   color: var(--text-muted);
   padding: 2rem;
+}
+
+/* ========== Inventario — Estructura de página ========== */
+.pagina-inventario .container {
+  padding-bottom: 2.5rem;
+}
+.pagina-inventario .nav-links {
+  margin-bottom: 1.5rem;
+}
+
+.inventario-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Cabecera de página: título + período + imprimir */
+.inventario-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.inventario-page-header-texto {
+  min-width: 0;
+}
+.inventario-page-titulo {
+  margin: 0 0 0.2rem 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+.inventario-page-subtitulo {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+.inventario-page-header-accion {
+  flex-shrink: 0;
+}
+.btn-imprimir-recibo {
+  white-space: nowrap;
+}
+
+/* Secciones con título claro */
+.inventario-seccion {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.inventario-seccion-titulo {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Bloque: Período consultado (filtro + resumen en una sola tarjeta) */
+.inventario-periodo-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2rem;
+  align-items: start;
+  padding: 1.5rem 1.75rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+@media (max-width: 720px) {
+  .inventario-periodo-card {
+    grid-template-columns: 1fr;
+  }
+}
+.inventario-periodo-filtro {
+  min-width: 0;
+}
+.inventario-form-periodo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+}
+.inventario-form-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.inventario-form-etiqueta {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.inventario-form-select {
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 0.95rem;
+  min-width: 140px;
+  background: #fff;
+}
+.inventario-periodo-resumen {
+  display: flex;
+  gap: 1.25rem;
+  flex-shrink: 0;
+}
+@media (max-width: 720px) {
+  .inventario-periodo-resumen {
+    flex-wrap: wrap;
+  }
+}
+.inventario-resumen-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 140px;
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  text-align: center;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+}
+.inventario-resumen-entrada {
+  border-color: rgba(76, 175, 80, 0.35);
+  background: rgba(76, 175, 80, 0.06);
+}
+.inventario-resumen-salida {
+  border-color: rgba(255, 152, 0, 0.35);
+  background: rgba(255, 152, 0, 0.06);
+}
+.inventario-resumen-numero {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 0.2rem;
+}
+.inventario-resumen-entrada .inventario-resumen-numero {
+  color: #2e7d32;
+}
+.inventario-resumen-salida .inventario-resumen-numero {
+  color: #e65100;
+}
+.inventario-resumen-texto {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.inventario-resumen-docs {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+/* Bloque: Detalle de movimientos (paneles Entradas / Salidas) */
+.inventario-seccion-detalle {
+  gap: 1.5rem;
+}
+.inventario-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.inventario-panel-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+.inventario-panel-entradas .inventario-panel-cabecera {
+  background: rgba(76, 175, 80, 0.06);
+  border-bottom-color: rgba(76, 175, 80, 0.25);
+}
+.inventario-panel-salidas .inventario-panel-cabecera {
+  background: rgba(255, 152, 0, 0.06);
+  border-bottom-color: rgba(255, 152, 0, 0.25);
+}
+.inventario-panel-titulo {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.inventario-panel-contador {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 1.75rem;
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+}
+.inventario-panel-entradas .inventario-panel-contador {
+  background: rgba(76, 175, 80, 0.2);
+  color: #2e7d32;
+}
+.inventario-panel-salidas .inventario-panel-contador {
+  background: rgba(255, 152, 0, 0.2);
+  color: #e65100;
+}
+.inventario-panel-cuerpo {
+  padding: 0;
+}
+.inventario-tabla-wrap {
+  overflow-x: auto;
+  margin: 0;
+  border: none;
+}
+.inventario-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.inventario-tabla thead th {
+  background: var(--bg-secondary);
+  padding: 0.8rem 1.2rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-bottom: 1px solid var(--border);
+}
+.inventario-tabla thead th.inventario-th-num {
+  text-align: right;
+}
+.inventario-tabla tbody td {
+  padding: 0.85rem 1.2rem;
+  border-bottom: 1px solid #eee;
+  vertical-align: top;
+}
+.inventario-tabla tbody tr:last-child td {
+  border-bottom: none;
+}
+.inventario-tabla tbody tr:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+.inventario-tabla td.inventario-th-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.inventario-empty {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 2rem 1rem;
+}
+.inventario-cell-detalle {
+  font-size: 0.875rem;
+  max-width: 300px;
+}
+.inventario-lista-detalle {
+  margin: 0;
+  padding-left: 1.15rem;
+  list-style: disc;
+}
+.inventario-lista-detalle li {
+  margin-bottom: 0.3rem;
+  line-height: 1.4;
+}
+.inventario-lista-detalle li:last-child {
+  margin-bottom: 0;
+}
+.inventario-cell-personas .inventario-sep {
+  color: var(--text-muted);
+  margin: 0 0.2rem;
+}
+
+@media (max-width: 640px) {
+  .inventario-filtro-inner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .filtro-mes-form {
+    justify-content: flex-start;
+  }
 }
 
 /* Login */

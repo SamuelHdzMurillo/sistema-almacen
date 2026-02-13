@@ -39,6 +39,7 @@ $totalSalidas = (int) $pdo->query("SELECT COALESCE(SUM(ds.cantidad), 0) AS t FRO
     <nav class="nav-links">
       <a href="index.php" class="active">Inicio</a>
       <a href="transacciones.php">Transacciones</a>
+      <a href="inventario.php">Inventario</a>
       <a href="nueva-entrada.php">Nueva entrada</a>
       <a href="nueva-salida.php">Nueva salida</a>
       <a href="productos.php">Productos</a>

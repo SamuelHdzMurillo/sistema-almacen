@@ -24,6 +24,7 @@ requerirLogin();
       <a href="transacciones.php">Transacciones</a>
       <a href="nueva-entrada.php">Nueva entrada</a>
       <a href="nueva-salida.php">Nueva salida</a>
+      <a href="inventario.php">Inventario</a>
       <a href="productos.php">Productos</a>
     </nav>
     <div class="form-card">
