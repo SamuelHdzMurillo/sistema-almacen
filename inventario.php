@@ -2,6 +2,7 @@
 require_once __DIR__ . '/includes/auth.php';
 requerirLogin();
 require_once __DIR__ . '/includes/inventario_mes.php';
+require_once __DIR__ . '/includes/inventario.php';
 
 $anioActual = (int) date('Y');
 $mesActual = (int) date('n');
@@ -14,6 +15,7 @@ if ($anio < 2000 || $anio > 2100) $anio = $anioActual;
 $entradas = listarEntradasPorMes($anio, $mes);
 $salidas  = listarSalidasPorMes($anio, $mes);
 $resumen  = resumenMes($anio, $mes);
+$inventarioActual = inventarioPorProducto();
 $mesNombre = $mesesNombres[$mes] ?? 'Mes';
 $periodoTexto = $mesNombre . ' ' . $anio;
 ?>
@@ -60,6 +62,54 @@ $periodoTexto = $mesNombre . ' ' . $anio;
           </a>
         </div>
       </header>
+
+      <!-- Inventario actual: stock por producto -->
+      <section class="inventario-seccion inventario-seccion-actual">
+        <h2 class="inventario-seccion-titulo">Inventario actual</h2>
+        <article class="inventario-panel inventario-panel-actual">
+          <header class="inventario-panel-cabecera">
+            <h3 class="inventario-panel-titulo">Stock por producto</h3>
+            <span class="inventario-panel-contador"><?= count($inventarioActual) ?></span>
+          </header>
+          <div class="inventario-panel-cuerpo">
+            <div class="inventario-tabla-wrap">
+              <table class="inventario-tabla inventario-tabla-actual">
+                <thead>
+                  <tr>
+                    <th class="inventario-col-codigo">Código</th>
+                    <th class="inventario-col-producto">Producto</th>
+                    <th class="inventario-col-unidad">Unidad</th>
+                    <th class="inventario-th-num inventario-col-cantidad">Cantidad actual</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php if (empty($inventarioActual)): ?>
+                    <tr><td colspan="4" class="inventario-empty">No hay productos registrados.</td></tr>
+                  <?php else: ?>
+                    <?php
+                    $totalUnidades = 0;
+                    foreach ($inventarioActual as $inv):
+                      $stock = (int) $inv['stock'];
+                      $totalUnidades += $stock;
+                    ?>
+                      <tr>
+                        <td class="inventario-col-codigo"><?= htmlspecialchars($inv['codigo'] ?? '—') ?></td>
+                        <td class="inventario-col-producto"><strong><?= htmlspecialchars($inv['nombre']) ?></strong></td>
+                        <td class="inventario-col-unidad"><?= htmlspecialchars($inv['unidad'] ?? 'und') ?></td>
+                        <td class="inventario-th-num inventario-col-cantidad <?= $stock > 0 ? 'qty-pos' : ($stock < 0 ? 'qty-neg' : '') ?>"><?= number_format($stock) ?></td>
+                      </tr>
+                    <?php endforeach; ?>
+                    <tr class="inventario-tabla-total">
+                      <td colspan="3" class="inventario-td-total-label"><strong>Total unidades en almacén</strong></td>
+                      <td class="inventario-th-num inventario-col-cantidad inventario-td-total-num <?= $totalUnidades >= 0 ? 'qty-pos' : 'qty-neg' ?>"><?= number_format($totalUnidades) ?></td>
+                    </tr>
+                  <?php endif; ?>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </article>
+      </section>
 
       <!-- Bloque 1: Selección de período + resumen numérico -->
       <section class="inventario-seccion inventario-seccion-periodo">

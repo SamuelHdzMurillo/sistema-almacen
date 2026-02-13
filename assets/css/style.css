@@ -1249,6 +1249,57 @@ body.recibo-hoja {
   border-bottom: 1px solid var(--border);
 }
 
+/* Inventario actual: panel y tabla */
+.inventario-panel-actual .inventario-panel-cabecera {
+  background: rgba(33, 150, 243, 0.06);
+  border-bottom-color: rgba(33, 150, 243, 0.25);
+}
+.inventario-panel-actual .inventario-panel-contador {
+  background: rgba(33, 150, 243, 0.2);
+  color: #1565c0;
+}
+.inventario-tabla-actual {
+  table-layout: fixed;
+}
+.inventario-tabla-actual .inventario-col-codigo {
+  width: 120px;
+  min-width: 100px;
+}
+.inventario-tabla-actual .inventario-col-producto {
+  min-width: 180px;
+}
+.inventario-tabla-actual .inventario-col-unidad {
+  width: 90px;
+  min-width: 70px;
+  text-align: center;
+}
+.inventario-tabla-actual thead th.inventario-col-unidad {
+  text-align: center;
+}
+.inventario-tabla-actual .inventario-col-cantidad {
+  width: 130px;
+  min-width: 110px;
+  text-align: right;
+}
+.inventario-tabla-actual tbody td {
+  vertical-align: middle;
+}
+.inventario-tabla-total {
+  background: var(--bg-secondary);
+  font-weight: 600;
+}
+.inventario-tabla-total td {
+  border-top: 2px solid var(--border) !important;
+  padding: 1rem 1.2rem !important;
+}
+.inventario-td-total-label {
+  text-align: right;
+  color: var(--text-primary);
+}
+.inventario-td-total-num {
+  font-variant-numeric: tabular-nums;
+}
+
 /* Bloque: Período consultado (filtro + resumen en una sola tarjeta) */
 .inventario-periodo-card {
   display: grid;
