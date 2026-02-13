@@ -45,5 +45,8 @@ CREATE TABLE IF NOT EXISTS usuarios (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Usuarios iniciales (contraseña de cada uno entre paréntesis)
 INSERT IGNORE INTO usuarios (usuario, clave, nombre) VALUES
-('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Administrador');
+('admin', '$2y$10$KC0RrL4lMMJP3kDVtB3vyOCbiG50eMLZo8EYS74Yz8ztcyCUidn2m', 'Administrador'),   -- cecyte2025_admin
+('arturo', '$2y$10$5MwodOnU0SlM5ERGcWzi1uELXfj428hsR851I8GBPGfc7QzsACfRy', 'Arturo'),        -- cecyte2025_arturo
+('eliazar', '$2y$10$tM.hNS9ntrpzXobLiXphEOcBSlH6UkTuSt9T7YIcXQFWpJHdZZLGu', 'Eliazar');       -- cecyte2025_eliazar
