@@ -18,6 +18,7 @@ $resumen  = resumenMes($anio, $mes);
 $inventarioActual = inventarioPorProducto();
 $mesNombre = $mesesNombres[$mes] ?? 'Mes';
 $periodoTexto = $mesNombre . ' ' . $anio;
+$vista = isset($_GET['vista']) && $_GET['vista'] === 'mes' ? 'mes' : 'actual';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -25,7 +26,7 @@ $periodoTexto = $mesNombre . ' ' . $anio;
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inventario — <?= htmlspecialchars($periodoTexto) ?> - Sistema de Almacén</title>
-  <link rel="stylesheet" href="assets/css/style.css?v=3">
+  <link rel="stylesheet" href="assets/css/style.css?v=4">
 </head>
 <body class="pagina-inventario">
   <div class="container">
@@ -54,16 +55,25 @@ $periodoTexto = $mesNombre . ' ' . $anio;
       <header class="inventario-page-header">
         <div class="inventario-page-header-texto">
           <h1 class="inventario-page-titulo">Inventario</h1>
-          <p class="inventario-page-subtitulo">Resumen por mes · <?= htmlspecialchars($periodoTexto) ?></p>
+          <p class="inventario-page-subtitulo"><?= $vista === 'actual' ? 'Stock en existencia por producto' : 'Resumen por mes · ' . htmlspecialchars($periodoTexto) ?></p>
         </div>
+        <?php if ($vista === 'mes'): ?>
         <div class="inventario-page-header-accion">
           <a href="recibo-mes.php?anio=<?= $anio ?>&mes=<?= $mes ?>&hoja=1" target="_blank" rel="noopener" class="btn btn-primary btn-imprimir-recibo">
             Imprimir recibo del mes
           </a>
         </div>
+        <?php endif; ?>
       </header>
 
-      <!-- Inventario actual: stock por producto -->
+      <!-- Pestañas -->
+      <nav class="inventario-tabs" role="tablist">
+        <a href="inventario.php?vista=actual" class="inventario-tab <?= $vista === 'actual' ? 'active' : '' ?>" role="tab">Inventario actual</a>
+        <a href="inventario.php?vista=mes&amp;anio=<?= $anio ?>&amp;mes=<?= $mes ?>" class="inventario-tab <?= $vista === 'mes' ? 'active' : '' ?>" role="tab">Inventario por mes</a>
+      </nav>
+
+      <!-- Contenido pestaña: Inventario actual -->
+      <div class="inventario-pestana-content <?= $vista === 'actual' ? 'activa' : '' ?>" id="pestana-actual" role="tabpanel">
       <section class="inventario-seccion inventario-seccion-actual">
         <h2 class="inventario-seccion-titulo">Inventario actual</h2>
         <article class="inventario-panel inventario-panel-actual">
@@ -110,10 +120,14 @@ $periodoTexto = $mesNombre . ' ' . $anio;
           </div>
         </article>
       </section>
+      </div>
 
-      <!-- Bloque 1: Selección de período + resumen numérico -->
-      <section class="inventario-seccion inventario-seccion-periodo">
-        <h2 class="inventario-seccion-titulo">Período consultado</h2>
+      <!-- Contenido pestaña: Inventario por mes -->
+      <div class="inventario-pestana-content <?= $vista === 'mes' ? 'activa' : '' ?>" id="pestana-mes" role="tabpanel">
+      <section class="inventario-seccion inventario-seccion-por-mes">
+        <h2 class="inventario-seccion-titulo">Inventario por mes</h2>
+
+        <!-- Período consultado + resumen numérico -->
         <div class="inventario-periodo-card">
           <div class="inventario-periodo-filtro">
             <form method="get" action="inventario.php" class="inventario-form-periodo">
@@ -149,11 +163,9 @@ $periodoTexto = $mesNombre . ' ' . $anio;
             </div>
           </div>
         </div>
-      </section>
 
-      <!-- Bloque 2: Detalle de movimientos -->
-      <section class="inventario-seccion inventario-seccion-detalle">
-        <h2 class="inventario-seccion-titulo">Detalle de movimientos — <?= htmlspecialchars($periodoTexto) ?></h2>
+        <!-- Detalle de movimientos del mes -->
+        <h3 class="inventario-subseccion-titulo">Detalle de movimientos — <?= htmlspecialchars($periodoTexto) ?></h3>
 
         <article class="inventario-panel inventario-panel-entradas">
           <header class="inventario-panel-cabecera">
@@ -251,6 +263,7 @@ $periodoTexto = $mesNombre . ' ' . $anio;
           </div>
         </article>
       </section>
+      </div>
     </main>
   </div>
 </body>
