@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/inventario.php';
 
 function generarReferenciaSalida(): string {
     $pdo = getDB();
@@ -36,6 +37,27 @@ function obtenerSalidaConDetalle(int $id): ?array {
 
 function crearSalida(string $fecha, string $nombreEntrega, string $nombreReceptor, array $lineas, ?int $usuarioId = null): int {
     $pdo = getDB();
+    $inventario = inventarioPorProducto();
+    $stockPorId = [];
+    $nombrePorId = [];
+    foreach ($inventario as $inv) {
+        $id = (int) $inv['id'];
+        $stockPorId[$id] = (int) $inv['stock'];
+        $nombrePorId[$id] = $inv['nombre'];
+    }
+    $solicitadoPorId = [];
+    foreach ($lineas as $l) {
+        if (empty($l['producto_id']) || (int)($l['cantidad'] ?? 0) <= 0) continue;
+        $pid = (int) $l['producto_id'];
+        $solicitadoPorId[$pid] = ($solicitadoPorId[$pid] ?? 0) + (int) $l['cantidad'];
+    }
+    foreach ($solicitadoPorId as $pid => $totalSolicitado) {
+        $stock = $stockPorId[$pid] ?? 0;
+        if ($totalSolicitado > $stock) {
+            $nombre = $nombrePorId[$pid] ?? 'ID ' . $pid;
+            throw new Exception("No hay stock suficiente para \"{$nombre}\": solicitado {$totalSolicitado}, disponible {$stock}.");
+        }
+    }
     $ref = generarReferenciaSalida();
     $pdo->beginTransaction();
     try {

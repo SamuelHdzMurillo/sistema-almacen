@@ -7,6 +7,17 @@ function listarProductos(): array {
     return $stmt->fetchAll();
 }
 
+/** Unidades por defecto + las que ya se usan en productos (sin duplicados, ordenadas). */
+function listarUnidadesDisponibles(): array {
+    $defecto = ['und', 'caja', 'rollo', 'kg', 'L', 'm'];
+    $pdo = getDB();
+    $stmt = $pdo->query('SELECT DISTINCT unidad FROM productos WHERE unidad IS NOT NULL AND unidad != "" ORDER BY unidad');
+    $enUso = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    $todas = array_values(array_unique(array_merge($defecto, $enUso)));
+    sort($todas);
+    return $todas;
+}
+
 function obtenerProducto(int $id): ?array {
     $pdo = getDB();
     $stmt = $pdo->prepare('SELECT id, codigo, nombre, descripcion, unidad FROM productos WHERE id = ?');

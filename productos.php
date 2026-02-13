@@ -8,10 +8,15 @@ $mensaje = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear'])) {
     $nombre = trim($_POST['nombre'] ?? '');
     $codigo = trim($_POST['codigo'] ?? '') ?: null;
+    $unidad = trim($_POST['unidad'] ?? '');
+    if ($unidad === '' || $unidad === 'otra') {
+        $unidad = trim($_POST['unidad_nueva'] ?? '');
+        $unidad = $unidad !== '' ? substr($unidad, 0, 20) : 'und';
+    }
     if ($nombre !== '') {
         try {
             $usuarioId = isset($_SESSION['usuario_id']) ? (int)$_SESSION['usuario_id'] : null;
-            crearProducto(['nombre' => $nombre, 'codigo' => $codigo, 'descripcion' => trim($_POST['descripcion'] ?? ''), 'unidad' => $_POST['unidad'] ?? 'und'], $usuarioId);
+            crearProducto(['nombre' => $nombre, 'codigo' => $codigo, 'descripcion' => trim($_POST['descripcion'] ?? ''), 'unidad' => $unidad], $usuarioId);
             $mensaje = 'Producto creado correctamente.';
         } catch (Exception $e) {
             $mensaje = 'Error: ' . $e->getMessage();
@@ -20,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear'])) {
 }
 
 $productos = listarProductos();
+$unidadesDisponibles = listarUnidadesDisponibles();
 $inventario = inventarioPorProducto();
 $siguienteCodigo = obtenerSiguienteCodigoProducto();
 $stockPorId = [];
@@ -76,14 +82,16 @@ foreach ($inventario as $inv) {
         </div>
         <div class="form-group">
           <label>Unidad</label>
-          <select name="unidad">
-            <option value="und">und</option>
-            <option value="caja">caja</option>
-            <option value="rollo">rollo</option>
-            <option value="kg">kg</option>
-            <option value="L">L</option>
-            <option value="m">m</option>
+          <select name="unidad" id="unidad">
+            <?php foreach ($unidadesDisponibles as $u): ?>
+              <option value="<?= htmlspecialchars($u) ?>"><?= htmlspecialchars($u) ?></option>
+            <?php endforeach; ?>
+            <option value="otra">Otra...</option>
           </select>
+          <div class="form-group" id="wrap-unidad-nueva" style="display:none; margin-top:0.5rem;">
+            <label for="unidad_nueva">Nueva unidad de medida</label>
+            <input type="text" name="unidad_nueva" id="unidad_nueva" placeholder="Ej: pieza, litro, bolsa" maxlength="20">
+          </div>
         </div>
         <button type="submit" class="btn btn-primary">Crear producto</button>
       </form>
@@ -116,5 +124,19 @@ foreach ($inventario as $inv) {
       </table>
     </div>
   </div>
+  <script>
+  (function() {
+    var sel = document.getElementById('unidad');
+    var wrap = document.getElementById('wrap-unidad-nueva');
+    var input = document.getElementById('unidad_nueva');
+    function toggle() {
+      var otra = sel.value === 'otra';
+      wrap.style.display = otra ? 'block' : 'none';
+      if (otra) input.focus(); else input.value = '';
+    }
+    sel.addEventListener('change', toggle);
+    toggle();
+  })();
+  </script>
 </body>
 </html>
