@@ -97,7 +97,7 @@ $hoja = isset($_GET['hoja']) && $_GET['hoja'] === '1';
           <tbody class="recibo-tbody-doc">
               <tr class="recibo-tr-doc-header">
                 <td><?= $i + 1 ?></td>
-                <td class="recibo-cell-desc"><?= htmlspecialchars($e['referencia']) ?> · <?= htmlspecialchars($e['fecha']) ?> · <?= htmlspecialchars($e['responsable']) ?></td>
+                <td class="recibo-cell-desc"><?= htmlspecialchars($e['referencia']) ?> · <?= htmlspecialchars($e['fecha']) ?> · <?= htmlspecialchars($e['proveedor_nombre'] ?? '—') ?> · <?= htmlspecialchars($e['quien_recibe_nombre'] ?? '—') ?></td>
                 <td colspan="2"></td>
               </tr>
               <?php foreach ($e['detalle'] as $j => $d): ?>
@@ -169,12 +169,12 @@ $hoja = isset($_GET['hoja']) && $_GET['hoja'] === '1';
         <?= number_format($resumen['total_salidas']) ?> unidades salidas.
       </p>
 
-      <!-- Misma zona de firma que recibo de salida (una firma: responsable) -->
+      <!-- Misma zona de firma que recibo de salida (una firma: quien recibe) -->
       <div class="recibo-firma-block">
         <p class="recibo-firma-leyenda">Documento de resumen mensual generado por el sistema de control de almacén.</p>
         <div class="recibo-firma-fisica">
           <div class="recibo-firma-linea">
-            <span class="recibo-firma-label">Responsable de almacén</span>
+            <span class="recibo-firma-label">Quien recibe en almacén</span>
             <span class="recibo-firma-espacio"></span>
           </div>
         </div>

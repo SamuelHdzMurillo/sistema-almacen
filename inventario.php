@@ -180,7 +180,7 @@ $vista = isset($_GET['vista']) && $_GET['vista'] === 'mes' ? 'mes' : 'actual';
                   <tr>
                     <th>Referencia</th>
                     <th>Fecha</th>
-                    <th>Responsable</th>
+                    <th>Proveedor / Quien recibe</th>
                     <th>Detalle</th>
                     <th class="inventario-th-num">Total</th>
                   </tr>
@@ -194,7 +194,7 @@ $vista = isset($_GET['vista']) && $_GET['vista'] === 'mes' ? 'mes' : 'actual';
                       <tr>
                         <td><strong><?= htmlspecialchars($e['referencia']) ?></strong></td>
                         <td><?= htmlspecialchars($e['fecha']) ?></td>
-                        <td><?= htmlspecialchars($e['responsable']) ?></td>
+                        <td><?= htmlspecialchars($e['proveedor_nombre'] ?? '—') ?> / <?= htmlspecialchars($e['quien_recibe_nombre'] ?? '—') ?></td>
                         <td class="inventario-cell-detalle">
                           <ul class="inventario-lista-detalle">
                             <?php foreach ($e['detalle'] as $d): ?>

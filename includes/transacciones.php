@@ -8,10 +8,11 @@ function listarTransaccionesRecientes(int $limite = 20, ?string $tipo = null, ?s
 
     if ($tipo !== 'out') {
         $sql = "
-            SELECT e.id, e.referencia, e.fecha, e.responsable AS persona, e.estado,
+            SELECT e.id, e.referencia, e.fecha, prov.nombre AS persona, e.estado,
                    'in' AS tipo, de.cantidad, p.nombre AS item_nombre,
                    e.created_at, e.created_by, u.nombre AS created_by_nombre
             FROM entradas e
+            LEFT JOIN catalogo_proveedor prov ON prov.id = e.proveedor_id
             JOIN detalle_entradas de ON de.entrada_id = e.id
             JOIN productos p ON p.id = de.producto_id
             LEFT JOIN usuarios u ON u.id = e.created_by
@@ -19,7 +20,7 @@ function listarTransaccionesRecientes(int $limite = 20, ?string $tipo = null, ?s
         ";
         $params = [];
         if ($busqueda) {
-            $sql .= " AND (e.referencia LIKE ? OR p.nombre LIKE ? OR e.responsable LIKE ?)";
+            $sql .= " AND (e.referencia LIKE ? OR p.nombre LIKE ? OR prov.nombre LIKE ?)";
             $q = "%{$busqueda}%";
             $params = array_merge($params, [$q, $q, $q]);
         }

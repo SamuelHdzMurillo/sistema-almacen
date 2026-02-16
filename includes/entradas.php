@@ -12,14 +12,14 @@ function generarReferenciaEntrada(): string {
 
 function listarEntradas(int $limite = 50): array {
     $pdo = getDB();
-    $stmt = $pdo->prepare('SELECT e.id, e.referencia, e.fecha, e.responsable, e.estado, e.created_at, e.updated_at, e.created_by, u.nombre AS created_by_nombre FROM entradas e LEFT JOIN usuarios u ON u.id = e.created_by ORDER BY e.created_at DESC LIMIT ?');
+    $stmt = $pdo->prepare('SELECT e.id, e.referencia, e.fecha, e.estado, e.created_at, e.updated_at, e.created_by, u.nombre AS created_by_nombre, prov.nombre AS proveedor_nombre, qr.nombre AS quien_recibe_nombre FROM entradas e LEFT JOIN usuarios u ON u.id = e.created_by LEFT JOIN catalogo_proveedor prov ON prov.id = e.proveedor_id LEFT JOIN catalogo_quien_recibe_entrada qr ON qr.id = e.quien_recibe_id ORDER BY e.created_at DESC LIMIT ?');
     $stmt->execute([$limite]);
     return $stmt->fetchAll();
 }
 
 function obtenerEntradaConDetalle(int $id): ?array {
     $pdo = getDB();
-    $stmt = $pdo->prepare('SELECT e.id, e.referencia, e.fecha, e.responsable, e.estado, e.created_at, e.updated_at, e.created_by, u.nombre AS created_by_nombre FROM entradas e LEFT JOIN usuarios u ON u.id = e.created_by WHERE e.id = ?');
+    $stmt = $pdo->prepare('SELECT e.id, e.referencia, e.fecha, e.estado, e.created_at, e.updated_at, e.created_by, u.nombre AS created_by_nombre, prov.nombre AS proveedor_nombre, qr.nombre AS quien_recibe_nombre FROM entradas e LEFT JOIN usuarios u ON u.id = e.created_by LEFT JOIN catalogo_proveedor prov ON prov.id = e.proveedor_id LEFT JOIN catalogo_quien_recibe_entrada qr ON qr.id = e.quien_recibe_id WHERE e.id = ?');
     $stmt->execute([$id]);
     $e = $stmt->fetch();
     if (!$e) return null;
@@ -34,13 +34,13 @@ function obtenerEntradaConDetalle(int $id): ?array {
     return $e;
 }
 
-function crearEntrada(string $fecha, string $responsable, array $lineas, ?int $usuarioId = null): int {
+function crearEntrada(string $fecha, int $proveedorId, int $quienRecibeId, array $lineas, ?int $usuarioId = null): int {
     $pdo = getDB();
     $ref = generarReferenciaEntrada();
     $pdo->beginTransaction();
     try {
-        $stmt = $pdo->prepare('INSERT INTO entradas (referencia, fecha, responsable, estado, created_by) VALUES (?, ?, ?, ?, ?)');
-        $stmt->execute([$ref, $fecha, $responsable, 'completada', $usuarioId]);
+        $stmt = $pdo->prepare('INSERT INTO entradas (referencia, fecha, proveedor_id, quien_recibe_id, estado, created_by) VALUES (?, ?, ?, ?, ?, ?)');
+        $stmt->execute([$ref, $fecha, $proveedorId, $quienRecibeId, 'completada', $usuarioId]);
         $entradaId = (int) $pdo->lastInsertId();
         $stmt2 = $pdo->prepare('INSERT INTO detalle_entradas (entrada_id, producto_id, cantidad, created_by) VALUES (?, ?, ?, ?)');
         foreach ($lineas as $l) {

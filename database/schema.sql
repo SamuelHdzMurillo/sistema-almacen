@@ -30,16 +30,37 @@ CREATE TABLE IF NOT EXISTS productos (
   FOREIGN KEY (created_by) REFERENCES usuarios(id) ON DELETE SET NULL
 );
 
+-- Catálogos para entradas
+CREATE TABLE IF NOT EXISTS catalogo_proveedor (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(150) NOT NULL UNIQUE,
+  activo TINYINT(1) DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS catalogo_quien_recibe_entrada (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(150) NOT NULL UNIQUE,
+  activo TINYINT(1) DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO catalogo_proveedor (nombre) VALUES ('No indicado');
+INSERT IGNORE INTO catalogo_quien_recibe_entrada (nombre) VALUES ('No indicado');
+
 -- Tabla: Entradas (cabecera)
 CREATE TABLE IF NOT EXISTS entradas (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   referencia VARCHAR(50) NOT NULL UNIQUE,
   fecha DATE NOT NULL,
-  responsable VARCHAR(150) NOT NULL,
+  proveedor_id INT UNSIGNED NOT NULL,
+  quien_recibe_id INT UNSIGNED NOT NULL,
   estado ENUM('completada','pendiente','cancelada') DEFAULT 'completada',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   created_by INT UNSIGNED NULL COMMENT 'Usuario que registró la entrada',
+  FOREIGN KEY (proveedor_id) REFERENCES catalogo_proveedor(id),
+  FOREIGN KEY (quien_recibe_id) REFERENCES catalogo_quien_recibe_entrada(id),
   FOREIGN KEY (created_by) REFERENCES usuarios(id) ON DELETE SET NULL
 );
 

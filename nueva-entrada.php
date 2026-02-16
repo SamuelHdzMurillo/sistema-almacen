@@ -3,13 +3,19 @@ require_once __DIR__ . '/includes/auth.php';
 requerirLogin();
 require_once __DIR__ . '/includes/entradas.php';
 require_once __DIR__ . '/includes/productos.php';
+require_once __DIR__ . '/includes/catalogos_entrada.php';
 
 $mensaje = '';
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fecha = $_POST['fecha'] ?? date('Y-m-d');
-    $responsable = trim($_POST['responsable'] ?? '');
+    $proveedorNuevo = trim($_POST['proveedor_nuevo'] ?? '');
+    $quienRecibeNuevo = trim($_POST['quien_recibe_nuevo'] ?? '');
+    $proveedorId = !empty($proveedorNuevo) ? null : (int)($_POST['proveedor_id'] ?? 0);
+    $quienRecibeId = !empty($quienRecibeNuevo) ? null : (int)($_POST['quien_recibe_id'] ?? 0);
+    if (!empty($proveedorNuevo)) $proveedorId = obtenerOcrearProveedor($proveedorNuevo);
+    if (!empty($quienRecibeNuevo)) $quienRecibeId = obtenerOcrearQuienRecibeEntrada($quienRecibeNuevo);
     $lineas = [];
     if (!empty($_POST['producto_id']) && is_array($_POST['producto_id'])) {
         foreach ($_POST['producto_id'] as $i => $pid) {
@@ -20,15 +26,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ];
         }
     }
-    if (empty($responsable)) {
-        $error = 'Indique el responsable.';
+    if ($proveedorId <= 0) {
+        $error = 'Seleccione o indique el proveedor.';
+    } elseif ($quienRecibeId <= 0) {
+        $error = 'Seleccione o indique quién recibe en almacén.';
     } elseif (empty($lineas)) {
         $error = 'Añada al menos un producto con cantidad.';
     } else {
         try {
             $usuarioId = isset($_SESSION['usuario_id']) ? (int)$_SESSION['usuario_id'] : null;
-            crearEntrada($fecha, $responsable, $lineas, $usuarioId);
-            $mensaje = 'Entrada registrada correctamente (ref. generada automáticamente).';
+            $entradaId = crearEntrada($fecha, $proveedorId, $quienRecibeId, $lineas, $usuarioId);
+            header('Location: recibo-entrada.php?id=' . $entradaId);
+            exit;
         } catch (Exception $e) {
             $error = 'Error al guardar: ' . $e->getMessage();
         }
@@ -36,6 +45,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $productos = listarProductos();
+$proveedores = listarProveedores();
+$quienRecibeEntrada = listarQuienRecibeEntrada();
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -67,7 +78,7 @@ $productos = listarProductos();
     </nav>
 
     <h1 class="page-title">Nueva entrada al almacén</h1>
-    <?php if ($mensaje): ?><div class="alert alert-success"><?= htmlspecialchars($mensaje) ?></div><?php endif; ?>
+    <p class="card-sub">Al guardar se generará el recibo de entrada con los datos indicados.</p>
     <?php if ($error): ?><div class="alert alert-error"><?= htmlspecialchars($error) ?></div><?php endif; ?>
 
     <form method="post" action="nueva-entrada.php">
@@ -77,8 +88,26 @@ $productos = listarProductos();
           <input type="date" name="fecha" value="<?= htmlspecialchars($_POST['fecha'] ?? date('Y-m-d')) ?>" required>
         </div>
         <div class="form-group">
-          <label>Responsable</label>
-          <input type="text" name="responsable" value="<?= htmlspecialchars($_POST['responsable'] ?? '') ?>" placeholder="Nombre del responsable" required>
+          <label>Proveedor</label>
+          <select name="proveedor_id" id="proveedor_id">
+            <option value="">-- Seleccione del catálogo --</option>
+            <?php foreach ($proveedores as $prov): ?>
+              <option value="<?= (int)$prov['id'] ?>" <?= (isset($_POST['proveedor_id']) && (int)$_POST['proveedor_id'] === (int)$prov['id']) ? 'selected' : '' ?>><?= htmlspecialchars($prov['nombre']) ?></option>
+            <?php endforeach; ?>
+            <option value="nuevo">+ Agregar nuevo al catálogo</option>
+          </select>
+          <input type="text" name="proveedor_nuevo" id="proveedor_nuevo" value="<?= htmlspecialchars($_POST['proveedor_nuevo'] ?? '') ?>" placeholder="Nombre del proveedor (si agregó nuevo)" class="form-nuevo-catalogo" style="display:none; margin-top:6px;">
+        </div>
+        <div class="form-group">
+          <label>Quien recibe (en almacén)</label>
+          <select name="quien_recibe_id" id="quien_recibe_id">
+            <option value="">-- Seleccione del catálogo --</option>
+            <?php foreach ($quienRecibeEntrada as $qr): ?>
+              <option value="<?= (int)$qr['id'] ?>" <?= (isset($_POST['quien_recibe_id']) && (int)$_POST['quien_recibe_id'] === (int)$qr['id']) ? 'selected' : '' ?>><?= htmlspecialchars($qr['nombre']) ?></option>
+            <?php endforeach; ?>
+            <option value="nuevo">+ Agregar nuevo al catálogo</option>
+          </select>
+          <input type="text" name="quien_recibe_nuevo" id="quien_recibe_nuevo" value="<?= htmlspecialchars($_POST['quien_recibe_nuevo'] ?? '') ?>" placeholder="Nombre (si agregó nuevo)" class="form-nuevo-catalogo" style="display:none; margin-top:6px;">
         </div>
       </div>
 
@@ -110,7 +139,7 @@ $productos = listarProductos();
         <button type="button" class="btn btn-secondary btn-add-line" id="addLine">+ Añadir línea</button>
       </div>
 
-      <button type="submit" class="btn btn-primary">Registrar entrada</button>
+      <button type="submit" class="btn btn-primary">Registrar entrada y generar recibo</button>
     </form>
   </div>
 
@@ -127,6 +156,24 @@ $productos = listarProductos();
       lastTd.innerHTML = '<button type="button" class="btn btn-secondary btn-sm" onclick="this.closest(\'tr\').remove()">✕</button>';
       tbody.appendChild(clone);
     });
+    function toggleNuevo(selId, inputId) {
+      var sel = document.getElementById(selId);
+      var input = document.getElementById(inputId);
+      if (sel.value === 'nuevo') {
+        input.style.display = 'block';
+        input.required = true;
+        sel.removeAttribute('required');
+      } else {
+        input.style.display = 'none';
+        input.required = false;
+        input.value = '';
+        sel.required = true;
+      }
+    }
+    document.getElementById('proveedor_id').addEventListener('change', function() { toggleNuevo('proveedor_id', 'proveedor_nuevo'); });
+    document.getElementById('quien_recibe_id').addEventListener('change', function() { toggleNuevo('quien_recibe_id', 'quien_recibe_nuevo'); });
+    toggleNuevo('proveedor_id', 'proveedor_nuevo');
+    toggleNuevo('quien_recibe_id', 'quien_recibe_nuevo');
   </script>
 </body>
 </html>

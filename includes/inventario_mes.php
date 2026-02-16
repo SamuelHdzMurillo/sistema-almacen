@@ -7,10 +7,13 @@ require_once __DIR__ . '/../config/database.php';
 function listarEntradasPorMes(int $anio, int $mes): array {
     $pdo = getDB();
     $stmt = $pdo->prepare("
-        SELECT e.id, e.referencia, e.fecha, e.responsable, e.estado, e.created_at,
-               u.nombre AS created_by_nombre
+        SELECT e.id, e.referencia, e.fecha, e.estado, e.created_at,
+               u.nombre AS created_by_nombre,
+               prov.nombre AS proveedor_nombre, qr.nombre AS quien_recibe_nombre
         FROM entradas e
         LEFT JOIN usuarios u ON u.id = e.created_by
+        LEFT JOIN catalogo_proveedor prov ON prov.id = e.proveedor_id
+        LEFT JOIN catalogo_quien_recibe_entrada qr ON qr.id = e.quien_recibe_id
         WHERE e.estado = 'completada'
           AND YEAR(e.fecha) = ?
           AND MONTH(e.fecha) = ?

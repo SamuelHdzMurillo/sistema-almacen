@@ -59,7 +59,19 @@ $puedeCancelar = ($estado === 'completada');
     <h1><?= htmlspecialchars($titulo) ?></h1>
     <p><span class="status-badge status-<?= htmlspecialchars($estado) ?>"><?= htmlspecialchars($estado) ?></span></p>
 
-    <?php if ($tipo === 'out'): ?>
+    <?php if ($tipo === 'in'): ?>
+    <p class="recibo-reimprimir-acciones">
+      <a href="recibo-entrada.php?id=<?= (int)$id ?>" class="btn btn-secondary">Ver recibo</a>
+      <a href="recibo-entrada.php?id=<?= (int)$id ?>&hoja=1" target="_blank" rel="noopener" class="btn btn-primary" id="btnImprimirReciboEntrada">Imprimir recibo</a>
+    </p>
+    <script>
+      document.getElementById('btnImprimirReciboEntrada').addEventListener('click', function(e) {
+        e.preventDefault();
+        window.open(this.href, 'recibo_entrada_imprimir', 'width=820,height=1000,scrollbars=yes,resizable=yes');
+        return false;
+      });
+    </script>
+    <?php elseif ($tipo === 'out'): ?>
     <p class="recibo-reimprimir-acciones">
       <a href="recibo.php?id=<?= (int)$id ?>" class="btn btn-secondary">Ver recibo</a>
       <a href="recibo.php?id=<?= (int)$id ?>&hoja=1" target="_blank" rel="noopener" class="btn btn-primary" id="btnImprimirRecibo">Imprimir recibo</a>
@@ -76,7 +88,8 @@ $puedeCancelar = ($estado === 'completada');
     <div class="form-card">
       <?php if ($tipo === 'in'): ?>
         <p><strong>Fecha:</strong> <?= htmlspecialchars($transaccion['fecha']) ?></p>
-        <p><strong>Responsable:</strong> <?= htmlspecialchars($transaccion['responsable']) ?></p>
+        <p><strong>Proveedor:</strong> <?= htmlspecialchars($transaccion['proveedor_nombre'] ?? '—') ?></p>
+        <p><strong>Quien recibe:</strong> <?= htmlspecialchars($transaccion['quien_recibe_nombre'] ?? '—') ?></p>
       <?php else: ?>
         <p><strong>Fecha:</strong> <?= htmlspecialchars($transaccion['fecha']) ?></p>
         <p><strong>Quien entrega:</strong> <?= htmlspecialchars($transaccion['nombre_entrega'] ?? '—') ?></p>
