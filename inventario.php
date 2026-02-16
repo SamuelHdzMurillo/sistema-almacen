@@ -131,6 +131,7 @@ $vista = isset($_GET['vista']) && $_GET['vista'] === 'mes' ? 'mes' : 'actual';
         <div class="inventario-periodo-card">
           <div class="inventario-periodo-filtro">
             <form method="get" action="inventario.php" class="inventario-form-periodo">
+              <input type="hidden" name="vista" value="mes">
               <label class="inventario-form-label">
                 <span class="inventario-form-etiqueta">Mes</span>
                 <select name="mes" class="inventario-form-select">
