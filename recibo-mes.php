@@ -87,29 +87,35 @@ $hoja = isset($_GET['hoja']) && $_GET['hoja'] === '1';
           <thead>
             <tr>
               <th>#</th>
-              <th>Descripción</th>
+              <th>Descripción / Artículo</th>
               <th>Cantidad</th>
               <th>Unidad</th>
             </tr>
           </thead>
-          <tbody>
             <?php foreach ($entradas as $i => $e): ?>
               <?php $totalLineas = array_sum(array_column($e['detalle'], 'cantidad')); ?>
-              <tr class="recibo-tr-documento">
+          <tbody class="recibo-tbody-doc">
+              <tr class="recibo-tr-doc-header">
                 <td><?= $i + 1 ?></td>
-                <td class="recibo-cell-desc">
-                  <span class="recibo-desc-linea1"><?= htmlspecialchars($e['referencia']) ?> · <?= htmlspecialchars($e['fecha']) ?> · <?= htmlspecialchars($e['responsable']) ?></span>
-                  <ul class="recibo-lista-detalle">
-                    <?php foreach ($e['detalle'] as $d): ?>
-                      <li><?= htmlspecialchars($d['producto_nombre']) ?> — <?= (int)$d['cantidad'] ?> <?= htmlspecialchars($d['unidad']) ?></li>
-                    <?php endforeach; ?>
-                  </ul>
-                </td>
-                <td><?= $totalLineas ?></td>
+                <td class="recibo-cell-desc"><?= htmlspecialchars($e['referencia']) ?> · <?= htmlspecialchars($e['fecha']) ?> · <?= htmlspecialchars($e['responsable']) ?></td>
+                <td colspan="2"></td>
+              </tr>
+              <?php foreach ($e['detalle'] as $j => $d): ?>
+              <tr class="recibo-tr-item">
+                <td></td>
+                <td><?= htmlspecialchars($d['producto_nombre']) ?></td>
+                <td class="recibo-cantidad-item"><?= (int)$d['cantidad'] ?></td>
+                <td><?= htmlspecialchars($d['unidad']) ?></td>
+              </tr>
+              <?php endforeach; ?>
+              <tr class="recibo-tr-suma">
+                <td></td>
+                <td class="recibo-suma-label">Total</td>
+                <td class="recibo-total-cell"><?= $totalLineas ?></td>
                 <td>und</td>
               </tr>
-            <?php endforeach; ?>
           </tbody>
+            <?php endforeach; ?>
         </table>
       </div>
       <?php endif; ?>
@@ -121,29 +127,35 @@ $hoja = isset($_GET['hoja']) && $_GET['hoja'] === '1';
           <thead>
             <tr>
               <th>#</th>
-              <th>Descripción</th>
+              <th>Descripción / Artículo</th>
               <th>Cantidad</th>
               <th>Unidad</th>
             </tr>
           </thead>
-          <tbody>
             <?php foreach ($salidas as $i => $s): ?>
               <?php $totalLineas = array_sum(array_column($s['detalle'], 'cantidad')); ?>
-              <tr class="recibo-tr-documento">
+          <tbody class="recibo-tbody-doc">
+              <tr class="recibo-tr-doc-header">
                 <td><?= $i + 1 ?></td>
-                <td class="recibo-cell-desc">
-                  <span class="recibo-desc-linea1"><?= htmlspecialchars($s['referencia']) ?> · <?= htmlspecialchars($s['fecha']) ?> · <?= htmlspecialchars($s['nombre_entrega']) ?> / <?= htmlspecialchars($s['nombre_receptor']) ?></span>
-                  <ul class="recibo-lista-detalle">
-                    <?php foreach ($s['detalle'] as $d): ?>
-                      <li><?= htmlspecialchars($d['producto_nombre']) ?> — <?= (int)$d['cantidad'] ?> <?= htmlspecialchars($d['unidad']) ?></li>
-                    <?php endforeach; ?>
-                  </ul>
-                </td>
-                <td><?= $totalLineas ?></td>
+                <td class="recibo-cell-desc"><?= htmlspecialchars($s['referencia']) ?> · <?= htmlspecialchars($s['fecha']) ?> · <?= htmlspecialchars($s['nombre_entrega']) ?> / <?= htmlspecialchars($s['nombre_receptor']) ?></td>
+                <td colspan="2"></td>
+              </tr>
+              <?php foreach ($s['detalle'] as $j => $d): ?>
+              <tr class="recibo-tr-item">
+                <td></td>
+                <td><?= htmlspecialchars($d['producto_nombre']) ?></td>
+                <td class="recibo-cantidad-item"><?= (int)$d['cantidad'] ?></td>
+                <td><?= htmlspecialchars($d['unidad']) ?></td>
+              </tr>
+              <?php endforeach; ?>
+              <tr class="recibo-tr-suma">
+                <td></td>
+                <td class="recibo-suma-label">Total</td>
+                <td class="recibo-total-cell"><?= $totalLineas ?></td>
                 <td>und</td>
               </tr>
-            <?php endforeach; ?>
           </tbody>
+            <?php endforeach; ?>
         </table>
       </div>
       <?php endif; ?>
@@ -152,10 +164,10 @@ $hoja = isset($_GET['hoja']) && $_GET['hoja'] === '1';
         <p class="recibo-sin-movimientos">No hay movimientos registrados en este mes.</p>
       <?php endif; ?>
 
-      <div class="recibo-total">
-        Resumen del mes: <strong><?= number_format($resumen['total_entradas']) ?></strong> unidades entradas,
-        <strong><?= number_format($resumen['total_salidas']) ?></strong> unidades salidas.
-      </div>
+      <p class="recibo-total recibo-total-secundario">
+        Resumen del mes: <?= number_format($resumen['total_entradas']) ?> unidades entradas,
+        <?= number_format($resumen['total_salidas']) ?> unidades salidas.
+      </p>
 
       <!-- Misma zona de firma que recibo de salida (una firma: responsable) -->
       <div class="recibo-firma-block">

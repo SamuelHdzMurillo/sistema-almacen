@@ -75,14 +75,20 @@ $totalUnidades = array_sum(array_column($salida['detalle'], 'cantidad'));
             <tr>
               <td><?= $i + 1 ?></td>
               <td><?= htmlspecialchars($d['producto_nombre']) ?></td>
-              <td><?= (int)$d['cantidad'] ?></td>
+              <td class="recibo-cantidad-item"><?= (int)$d['cantidad'] ?></td>
               <td><?= htmlspecialchars($d['unidad']) ?></td>
             </tr>
             <?php endforeach; ?>
+            <tr class="recibo-tr-suma">
+              <td></td>
+              <td class="recibo-suma-label">Total</td>
+              <td class="recibo-total-cell"><?= $totalUnidades ?></td>
+              <td>und</td>
+            </tr>
           </tbody>
         </table>
       </div>
-      <div class="recibo-total">Total de ítems entregados: <strong><?= $totalUnidades ?></strong></div>
+      <p class="recibo-total recibo-total-secundario">Total de ítems entregados: <?= $totalUnidades ?></p>
 
       <div class="recibo-firma-block">
         <p class="recibo-firma-leyenda">Ambas partes firman de conformidad: quien entrega el material y quien lo recibe.</p>

@@ -753,10 +753,25 @@ tr:hover td {
   margin-bottom: 1rem;
 }
 
+/* Cantidad de cada ítem: prioritaria y visible */
+.recibo-cantidad-item {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #1a1a1a;
+}
+
 .recibo-total {
   font-size: 0.95rem;
   margin-bottom: 1.5rem;
   padding: 0.5rem 0;
+}
+
+/* Total como dato secundario (resumen) */
+.recibo-total-secundario {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: normal;
+  margin-top: 0.5rem;
 }
 
 /* Zona de firma */
@@ -901,6 +916,48 @@ body.recibo-mes .recibo-sheet {
   margin-bottom: 0;
 }
 
+.recibo-lista-detalle .recibo-cantidad-item {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #1a1a1a;
+  margin-right: 0.25rem;
+}
+
+/* Celda total por documento (secundaria respecto a cantidades por ítem) */
+.recibo-tabla .recibo-total-cell {
+  font-size: 0.9em;
+  color: #666;
+  font-weight: normal;
+}
+
+/* Recibo mensual: cabecera de cada documento */
+.recibo-tr-doc-header td {
+  background: #f8f8f8;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.recibo-tr-doc-header .recibo-cell-desc {
+  padding-top: 0.4rem;
+  padding-bottom: 0.2rem;
+}
+
+/* Recibo mensual: fila "Total" debajo de cada entrada/salida */
+.recibo-tr-suma td {
+  border-top: 1px solid #ccc;
+  font-size: 0.9rem;
+  color: #555;
+  padding-top: 0.35rem;
+}
+.recibo-suma-label {
+  font-weight: 600;
+  font-style: italic;
+}
+
+/* No cortar un documento a la mitad al imprimir */
+.recibo-tbody-doc {
+  page-break-inside: avoid;
+}
+
 .recibo-acciones {
   text-align: center;
   margin-top: 1rem;
@@ -1039,6 +1096,10 @@ body.recibo-hoja {
   margin-bottom: 0.75rem;
   padding: 0.35rem 0;
 }
+.recibo-hoja .recibo-sheet .recibo-total-secundario {
+  font-size: 0.8rem;
+  color: #555;
+}
 .recibo-hoja .recibo-sheet .recibo-firma-block {
   margin-top: 1rem;
   padding-top: 1rem;
@@ -1160,8 +1221,8 @@ body.recibo-hoja {
   body.recibo-mes .recibo-tabla thead {
     display: table-header-group;
   }
-  /* No cortar una fila a la mitad: si no cabe, pasa a la siguiente hoja */
-  body.recibo-mes .recibo-tr-documento {
+  /* No cortar un documento (grupo de filas) a la mitad: si no cabe, pasa a la siguiente hoja */
+  body.recibo-mes .recibo-tbody-doc {
     page-break-inside: avoid;
   }
   /* No cortar título de sección ni total ni firma ni pie */
