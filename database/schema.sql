@@ -57,17 +57,47 @@ CREATE TABLE IF NOT EXISTS detalle_entradas (
   FOREIGN KEY (created_by) REFERENCES usuarios(id) ON DELETE SET NULL
 );
 
+-- Catálogos para salidas (datos normalizados)
+CREATE TABLE IF NOT EXISTS catalogo_quien_entrega (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(150) NOT NULL UNIQUE,
+  activo TINYINT(1) DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS catalogo_plantel (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(150) NOT NULL UNIQUE,
+  activo TINYINT(1) DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS catalogo_receptor (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(150) NOT NULL UNIQUE,
+  activo TINYINT(1) DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO catalogo_quien_entrega (nombre) VALUES ('No indicado');
+INSERT IGNORE INTO catalogo_plantel (nombre) VALUES ('No especificado');
+INSERT IGNORE INTO catalogo_receptor (nombre) VALUES ('No indicado');
+
 -- Tabla: Salidas (cabecera)
 CREATE TABLE IF NOT EXISTS salidas (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   referencia VARCHAR(50) NOT NULL UNIQUE,
   fecha DATE NOT NULL,
-  nombre_entrega VARCHAR(150) NOT NULL COMMENT 'Quien entrega el material',
-  nombre_receptor VARCHAR(150) NOT NULL COMMENT 'Quien recibe el material',
+  quien_entrega_id INT UNSIGNED NOT NULL COMMENT 'Catálogo: quien entrega el material',
+  plantel_id INT UNSIGNED NOT NULL COMMENT 'Catálogo: plantel al que se entrega',
+  receptor_id INT UNSIGNED NOT NULL COMMENT 'Catálogo: persona que recibe',
   estado ENUM('completada','pendiente','cancelada') DEFAULT 'completada',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   created_by INT UNSIGNED NULL COMMENT 'Usuario que registró la salida',
+  FOREIGN KEY (quien_entrega_id) REFERENCES catalogo_quien_entrega(id),
+  FOREIGN KEY (plantel_id) REFERENCES catalogo_plantel(id),
+  FOREIGN KEY (receptor_id) REFERENCES catalogo_receptor(id),
   FOREIGN KEY (created_by) REFERENCES usuarios(id) ON DELETE SET NULL
 );
 

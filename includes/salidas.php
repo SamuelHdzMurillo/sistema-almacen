@@ -13,14 +13,34 @@ function generarReferenciaSalida(): string {
 
 function listarSalidas(int $limite = 50): array {
     $pdo = getDB();
-    $stmt = $pdo->prepare('SELECT s.id, s.referencia, s.fecha, s.nombre_entrega, s.nombre_receptor, s.estado, s.created_at, s.updated_at, s.created_by, u.nombre AS created_by_nombre FROM salidas s LEFT JOIN usuarios u ON u.id = s.created_by ORDER BY s.created_at DESC LIMIT ?');
+    $stmt = $pdo->prepare('
+        SELECT s.id, s.referencia, s.fecha, s.estado, s.created_at, s.updated_at, s.created_by,
+               qe.nombre AS nombre_entrega, pl.nombre AS plantel_nombre, rec.nombre AS nombre_receptor,
+               u.nombre AS created_by_nombre
+        FROM salidas s
+        LEFT JOIN catalogo_quien_entrega qe ON qe.id = s.quien_entrega_id
+        LEFT JOIN catalogo_plantel pl ON pl.id = s.plantel_id
+        LEFT JOIN catalogo_receptor rec ON rec.id = s.receptor_id
+        LEFT JOIN usuarios u ON u.id = s.created_by
+        ORDER BY s.created_at DESC LIMIT ?
+    ');
     $stmt->execute([$limite]);
     return $stmt->fetchAll();
 }
 
 function obtenerSalidaConDetalle(int $id): ?array {
     $pdo = getDB();
-    $stmt = $pdo->prepare('SELECT s.id, s.referencia, s.fecha, s.nombre_entrega, s.nombre_receptor, s.estado, s.created_at, s.updated_at, s.created_by, u.nombre AS created_by_nombre FROM salidas s LEFT JOIN usuarios u ON u.id = s.created_by WHERE s.id = ?');
+    $stmt = $pdo->prepare('
+        SELECT s.id, s.referencia, s.fecha, s.estado, s.created_at, s.updated_at, s.created_by,
+               qe.nombre AS nombre_entrega, pl.nombre AS plantel_nombre, rec.nombre AS nombre_receptor,
+               u.nombre AS created_by_nombre
+        FROM salidas s
+        LEFT JOIN catalogo_quien_entrega qe ON qe.id = s.quien_entrega_id
+        LEFT JOIN catalogo_plantel pl ON pl.id = s.plantel_id
+        LEFT JOIN catalogo_receptor rec ON rec.id = s.receptor_id
+        LEFT JOIN usuarios u ON u.id = s.created_by
+        WHERE s.id = ?
+    ');
     $stmt->execute([$id]);
     $s = $stmt->fetch();
     if (!$s) return null;
@@ -35,7 +55,7 @@ function obtenerSalidaConDetalle(int $id): ?array {
     return $s;
 }
 
-function crearSalida(string $fecha, string $nombreEntrega, string $nombreReceptor, array $lineas, ?int $usuarioId = null): int {
+function crearSalida(string $fecha, int $quienEntregaId, int $plantelId, int $receptorId, array $lineas, ?int $usuarioId = null): int {
     $pdo = getDB();
     $inventario = inventarioPorProducto();
     $stockPorId = [];
@@ -61,8 +81,8 @@ function crearSalida(string $fecha, string $nombreEntrega, string $nombreRecepto
     $ref = generarReferenciaSalida();
     $pdo->beginTransaction();
     try {
-        $stmt = $pdo->prepare('INSERT INTO salidas (referencia, fecha, nombre_entrega, nombre_receptor, estado, created_by) VALUES (?, ?, ?, ?, ?, ?)');
-        $stmt->execute([$ref, $fecha, $nombreEntrega, $nombreReceptor, 'completada', $usuarioId]);
+        $stmt = $pdo->prepare('INSERT INTO salidas (referencia, fecha, quien_entrega_id, plantel_id, receptor_id, estado, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)');
+        $stmt->execute([$ref, $fecha, $quienEntregaId, $plantelId, $receptorId, 'completada', $usuarioId]);
         $salidaId = (int) $pdo->lastInsertId();
         $stmt2 = $pdo->prepare('INSERT INTO detalle_salidas (salida_id, producto_id, cantidad, created_by) VALUES (?, ?, ?, ?)');
         foreach ($lineas as $l) {

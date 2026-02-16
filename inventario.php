@@ -240,9 +240,11 @@ $vista = isset($_GET['vista']) && $_GET['vista'] === 'mes' ? 'mes' : 'actual';
                         <td><strong><?= htmlspecialchars($s['referencia']) ?></strong></td>
                         <td><?= htmlspecialchars($s['fecha']) ?></td>
                         <td class="inventario-cell-personas">
-                          <span title="Entrega"><?= htmlspecialchars($s['nombre_entrega']) ?></span>
+                          <span title="Entrega"><?= htmlspecialchars($s['nombre_entrega'] ?? '—') ?></span>
                           <span class="inventario-sep">/</span>
-                          <span title="Recibe"><?= htmlspecialchars($s['nombre_receptor']) ?></span>
+                          <span title="Plantel"><?= htmlspecialchars($s['plantel_nombre'] ?? '—') ?></span>
+                          <span class="inventario-sep">/</span>
+                          <span title="Recibe"><?= htmlspecialchars($s['nombre_receptor'] ?? '—') ?></span>
                         </td>
                         <td class="inventario-cell-detalle">
                           <ul class="inventario-lista-detalle">

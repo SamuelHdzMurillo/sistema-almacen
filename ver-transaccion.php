@@ -79,8 +79,9 @@ $puedeCancelar = ($estado === 'completada');
         <p><strong>Responsable:</strong> <?= htmlspecialchars($transaccion['responsable']) ?></p>
       <?php else: ?>
         <p><strong>Fecha:</strong> <?= htmlspecialchars($transaccion['fecha']) ?></p>
-        <p><strong>Entrega (quien entrega):</strong> <?= htmlspecialchars($transaccion['nombre_entrega'] ?? '') ?></p>
-        <p><strong>Recibe (quien recibe):</strong> <?= htmlspecialchars($transaccion['nombre_receptor']) ?></p>
+        <p><strong>Quien entrega:</strong> <?= htmlspecialchars($transaccion['nombre_entrega'] ?? '—') ?></p>
+        <p><strong>Plantel:</strong> <?= htmlspecialchars($transaccion['plantel_nombre'] ?? '—') ?></p>
+        <p><strong>Quien recibe:</strong> <?= htmlspecialchars($transaccion['nombre_receptor'] ?? '—') ?></p>
       <?php endif; ?>
       <?php
         $registradoAt = $transaccion['created_at'] ?? null;

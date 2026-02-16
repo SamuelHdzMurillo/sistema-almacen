@@ -39,6 +39,11 @@ $accionesMostradas = [];
       <a href="productos.php">Productos</a>
     </nav>
 
+    <nav class="nav-links nav-links-sub" style="margin-top:-0.5rem; margin-bottom:1rem;">
+      <a href="transacciones.php" class="active">Listado de transacciones</a>
+      <a href="entregas-plantel-persona.php">Entregas por plantel y persona</a>
+    </nav>
+
     <section class="section-header">
       <h2>Transacciones recientes</h2>
       <?php if ($mensajeCancelado): ?>

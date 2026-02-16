@@ -137,7 +137,7 @@ $hoja = isset($_GET['hoja']) && $_GET['hoja'] === '1';
           <tbody class="recibo-tbody-doc">
               <tr class="recibo-tr-doc-header">
                 <td><?= $i + 1 ?></td>
-                <td class="recibo-cell-desc"><?= htmlspecialchars($s['referencia']) ?> · <?= htmlspecialchars($s['fecha']) ?> · <?= htmlspecialchars($s['nombre_entrega']) ?> / <?= htmlspecialchars($s['nombre_receptor']) ?></td>
+                <td class="recibo-cell-desc"><?= htmlspecialchars($s['referencia']) ?> · <?= htmlspecialchars($s['fecha']) ?> · <?= htmlspecialchars($s['nombre_entrega'] ?? '—') ?> / <?= htmlspecialchars($s['plantel_nombre'] ?? '—') ?> / <?= htmlspecialchars($s['nombre_receptor'] ?? '—') ?></td>
                 <td colspan="2"></td>
               </tr>
               <?php foreach ($s['detalle'] as $j => $d): ?>

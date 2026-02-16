@@ -3,13 +3,21 @@ require_once __DIR__ . '/includes/auth.php';
 requerirLogin();
 require_once __DIR__ . '/includes/salidas.php';
 require_once __DIR__ . '/includes/productos.php';
+require_once __DIR__ . '/includes/catalogos_salida.php';
 
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fecha = $_POST['fecha'] ?? date('Y-m-d');
-    $nombreEntrega = trim($_POST['nombre_entrega'] ?? '');
-    $nombreReceptor = trim($_POST['nombre_receptor'] ?? '');
+    $quienEntregaNuevo = trim($_POST['quien_entrega_nuevo'] ?? '');
+    $plantelNuevo = trim($_POST['plantel_nuevo'] ?? '');
+    $receptorNuevo = trim($_POST['receptor_nuevo'] ?? '');
+    $quienEntregaId = !empty($quienEntregaNuevo) ? null : (int)($_POST['quien_entrega_id'] ?? 0);
+    $plantelId = !empty($plantelNuevo) ? null : (int)($_POST['plantel_id'] ?? 0);
+    $receptorId = !empty($receptorNuevo) ? null : (int)($_POST['receptor_id'] ?? 0);
+    if (!empty($quienEntregaNuevo)) $quienEntregaId = obtenerOcrearQuienEntrega($quienEntregaNuevo);
+    if (!empty($plantelNuevo)) $plantelId = obtenerOcrearPlantel($plantelNuevo);
+    if (!empty($receptorNuevo)) $receptorId = obtenerOcrearReceptor($receptorNuevo);
     $lineas = [];
     if (!empty($_POST['producto_id']) && is_array($_POST['producto_id'])) {
         foreach ($_POST['producto_id'] as $i => $pid) {
@@ -20,16 +28,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ];
         }
     }
-    if (empty($nombreEntrega)) {
-        $error = 'Indique el nombre de la persona que entrega los artículos.';
-    } elseif (empty($nombreReceptor)) {
-        $error = 'Indique el nombre de la persona que recibe los artículos.';
+    if ($quienEntregaId <= 0) {
+        $error = 'Seleccione o indique quién entrega el material.';
+    } elseif ($plantelId <= 0) {
+        $error = 'Seleccione o indique el plantel al que se entrega.';
+    } elseif ($receptorId <= 0) {
+        $error = 'Seleccione o indique la persona que recibe el material.';
     } elseif (empty($lineas)) {
         $error = 'Añada al menos un producto con cantidad.';
     } else {
         try {
             $usuarioId = isset($_SESSION['usuario_id']) ? (int)$_SESSION['usuario_id'] : null;
-            $salidaId = crearSalida($fecha, $nombreEntrega, $nombreReceptor, $lineas, $usuarioId);
+            $salidaId = crearSalida($fecha, $quienEntregaId, $plantelId, $receptorId, $lineas, $usuarioId);
             header('Location: recibo.php?id=' . $salidaId);
             exit;
         } catch (Exception $e) {
@@ -39,6 +49,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $productos = listarProductos();
+$quienEntrega = listarQuienEntrega();
+$planteles = listarPlanteles();
+$receptores = listarReceptores();
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -80,12 +93,37 @@ $productos = listarProductos();
           <input type="date" name="fecha" value="<?= htmlspecialchars($_POST['fecha'] ?? date('Y-m-d')) ?>" required>
         </div>
         <div class="form-group">
-          <label>Nombre de quien entrega (entrega el material)</label>
-          <input type="text" name="nombre_entrega" value="<?= htmlspecialchars($_POST['nombre_entrega'] ?? '') ?>" placeholder="Nombre completo de quien entrega" required>
+          <label>Quien entrega (entrega el material)</label>
+          <select name="quien_entrega_id" id="quien_entrega_id">
+            <option value="">-- Seleccione del catálogo --</option>
+            <?php foreach ($quienEntrega as $q): ?>
+              <option value="<?= (int)$q['id'] ?>" <?= (isset($_POST['quien_entrega_id']) && (int)$_POST['quien_entrega_id'] === (int)$q['id']) ? 'selected' : '' ?>><?= htmlspecialchars($q['nombre']) ?></option>
+            <?php endforeach; ?>
+            <option value="nuevo">+ Agregar nuevo al catálogo</option>
+          </select>
+          <input type="text" name="quien_entrega_nuevo" id="quien_entrega_nuevo" value="<?= htmlspecialchars($_POST['quien_entrega_nuevo'] ?? '') ?>" placeholder="Nombre (si agregó nuevo)" class="form-nuevo-catalogo" style="display:none; margin-top:6px;">
         </div>
         <div class="form-group">
-          <label>Nombre de quien recibe (recibe los artículos)</label>
-          <input type="text" name="nombre_receptor" value="<?= htmlspecialchars($_POST['nombre_receptor'] ?? '') ?>" placeholder="Nombre completo de quien recibe" required>
+          <label>Plantel al que se entrega</label>
+          <select name="plantel_id" id="plantel_id">
+            <option value="">-- Seleccione del catálogo --</option>
+            <?php foreach ($planteles as $pl): ?>
+              <option value="<?= (int)$pl['id'] ?>" <?= (isset($_POST['plantel_id']) && (int)$_POST['plantel_id'] === (int)$pl['id']) ? 'selected' : '' ?>><?= htmlspecialchars($pl['nombre']) ?></option>
+            <?php endforeach; ?>
+            <option value="nuevo">+ Agregar nuevo al catálogo</option>
+          </select>
+          <input type="text" name="plantel_nuevo" id="plantel_nuevo" value="<?= htmlspecialchars($_POST['plantel_nuevo'] ?? '') ?>" placeholder="Nombre del plantel (si agregó nuevo)" class="form-nuevo-catalogo" style="display:none; margin-top:6px;">
+        </div>
+        <div class="form-group">
+          <label>Persona que recibe el material</label>
+          <select name="receptor_id" id="receptor_id">
+            <option value="">-- Seleccione del catálogo --</option>
+            <?php foreach ($receptores as $r): ?>
+              <option value="<?= (int)$r['id'] ?>" <?= (isset($_POST['receptor_id']) && (int)$_POST['receptor_id'] === (int)$r['id']) ? 'selected' : '' ?>><?= htmlspecialchars($r['nombre']) ?></option>
+            <?php endforeach; ?>
+            <option value="nuevo">+ Agregar nuevo al catálogo</option>
+          </select>
+          <input type="text" name="receptor_nuevo" id="receptor_nuevo" value="<?= htmlspecialchars($_POST['receptor_nuevo'] ?? '') ?>" placeholder="Nombre (si agregó nuevo)" class="form-nuevo-catalogo" style="display:none; margin-top:6px;">
         </div>
       </div>
 
@@ -134,6 +172,26 @@ $productos = listarProductos();
       lastTd.innerHTML = '<button type="button" class="btn btn-secondary btn-sm" onclick="this.closest(\'tr\').remove()">✕</button>';
       tbody.appendChild(clone);
     });
+    function toggleNuevo(selId, inputId) {
+      var sel = document.getElementById(selId);
+      var input = document.getElementById(inputId);
+      if (sel.value === 'nuevo') {
+        input.style.display = 'block';
+        input.required = true;
+        sel.removeAttribute('required');
+      } else {
+        input.style.display = 'none';
+        input.required = false;
+        input.value = '';
+        sel.required = true;
+      }
+    }
+    document.getElementById('quien_entrega_id').addEventListener('change', function() { toggleNuevo('quien_entrega_id', 'quien_entrega_nuevo'); });
+    document.getElementById('plantel_id').addEventListener('change', function() { toggleNuevo('plantel_id', 'plantel_nuevo'); });
+    document.getElementById('receptor_id').addEventListener('change', function() { toggleNuevo('receptor_id', 'receptor_nuevo'); });
+    toggleNuevo('quien_entrega_id', 'quien_entrega_nuevo');
+    toggleNuevo('plantel_id', 'plantel_nuevo');
+    toggleNuevo('receptor_id', 'receptor_nuevo');
   </script>
 </body>
 </html>

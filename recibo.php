@@ -40,7 +40,7 @@ $totalUnidades = array_sum(array_column($salida['detalle'], 'cantidad'));
           </div>
         </div>
         <div class="recibo-ref">
-          <span class="recibo-ref-label">Referencia</span>
+          <span class="recibo-ref-label">Folio</span>
           <span class="recibo-ref-valor"><?= htmlspecialchars($salida['referencia']) ?></span>
         </div>
       </div>
@@ -51,12 +51,16 @@ $totalUnidades = array_sum(array_column($salida['detalle'], 'cantidad'));
           <span class="recibo-dato-valor"><?= htmlspecialchars($salida['fecha']) ?></span>
         </div>
         <div class="recibo-dato">
-          <span class="recibo-dato-label">Entrega (quien entrega el material)</span>
+          <span class="recibo-dato-label">Quien entrega el material</span>
           <span class="recibo-dato-valor"><?= htmlspecialchars($salida['nombre_entrega'] ?? '—') ?></span>
         </div>
         <div class="recibo-dato">
-          <span class="recibo-dato-label">Recibe (quien recibe el material)</span>
-          <span class="recibo-dato-valor recibo-receptor"><?= htmlspecialchars($salida['nombre_receptor']) ?></span>
+          <span class="recibo-dato-label">Plantel al que se entrega</span>
+          <span class="recibo-dato-valor"><?= htmlspecialchars($salida['plantel_nombre'] ?? '—') ?></span>
+        </div>
+        <div class="recibo-dato">
+          <span class="recibo-dato-label">Persona que recibe el material</span>
+          <span class="recibo-dato-valor recibo-receptor"><?= htmlspecialchars($salida['nombre_receptor'] ?? '—') ?></span>
         </div>
       </div>
 
@@ -110,7 +114,7 @@ $totalUnidades = array_sum(array_column($salida['detalle'], 'cantidad'));
             </div>
             <div class="recibo-firma-nombre">
               <span class="recibo-firma-nombre-label">Nombre:</span>
-              <span class="recibo-firma-nombre-valor"><?= htmlspecialchars($salida['nombre_receptor']) ?></span>
+              <span class="recibo-firma-nombre-valor"><?= htmlspecialchars($salida['nombre_receptor'] ?? '—') ?></span>
             </div>
           </div>
         </div>
@@ -147,8 +151,10 @@ $totalUnidades = array_sum(array_column($salida['detalle'], 'cantidad'));
       <h1>Recibo generado</h1>
       <p>Se ha registrado la salida <strong><?= htmlspecialchars($salida['referencia']) ?></strong>. Abra el recibo para imprimirlo; el receptor firmará a mano en el espacio indicado en el documento.</p>
       <div class="recibo-recibido-preview">
+        <span><strong>Folio:</strong> <?= htmlspecialchars($salida['referencia']) ?></span>
         <span><strong>Entrega:</strong> <?= htmlspecialchars($salida['nombre_entrega'] ?? '—') ?></span>
-        <span><strong>Recibe:</strong> <?= htmlspecialchars($salida['nombre_receptor']) ?></span>
+        <span><strong>Plantel:</strong> <?= htmlspecialchars($salida['plantel_nombre'] ?? '—') ?></span>
+        <span><strong>Recibe:</strong> <?= htmlspecialchars($salida['nombre_receptor'] ?? '—') ?></span>
         <span><strong>Fecha:</strong> <?= htmlspecialchars($salida['fecha']) ?></span>
         <span><strong>Ítems:</strong> <?= $totalUnidades ?></span>
       </div>

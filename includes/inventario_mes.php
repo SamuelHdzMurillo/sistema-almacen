@@ -37,9 +37,13 @@ function listarEntradasPorMes(int $anio, int $mes): array {
 function listarSalidasPorMes(int $anio, int $mes): array {
     $pdo = getDB();
     $stmt = $pdo->prepare("
-        SELECT s.id, s.referencia, s.fecha, s.nombre_entrega, s.nombre_receptor, s.estado, s.created_at,
+        SELECT s.id, s.referencia, s.fecha, s.estado, s.created_at,
+               qe.nombre AS nombre_entrega, pl.nombre AS plantel_nombre, rec.nombre AS nombre_receptor,
                u.nombre AS created_by_nombre
         FROM salidas s
+        LEFT JOIN catalogo_quien_entrega qe ON qe.id = s.quien_entrega_id
+        LEFT JOIN catalogo_plantel pl ON pl.id = s.plantel_id
+        LEFT JOIN catalogo_receptor rec ON rec.id = s.receptor_id
         LEFT JOIN usuarios u ON u.id = s.created_by
         WHERE s.estado = 'completada'
           AND YEAR(s.fecha) = ?
