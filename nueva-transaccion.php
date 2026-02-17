@@ -8,6 +8,7 @@ requerirLogin();
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nueva transacción - Sistema de Almacén</title>
+  <link rel="icon" type="image/webp" href="assets/css/img/logo_cecyte_grande.webp">
   <link rel="stylesheet" href="assets/css/style.css?v=2">
 </head>
 <body>

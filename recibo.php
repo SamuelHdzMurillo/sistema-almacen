@@ -21,6 +21,7 @@ $totalUnidades = array_sum(array_column($salida['detalle'], 'cantidad'));
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= htmlspecialchars($titulo) ?></title>
+  <link rel="icon" type="image/webp" href="assets/css/img/logo_cecyte_grande.webp">
   <link rel="stylesheet" href="assets/css/style.css?v=5">
   <?php if ($hoja): ?>
   <style media="print">@page { size: letter; margin: 10mm; }</style>

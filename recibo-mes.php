@@ -23,6 +23,7 @@ $hoja = isset($_GET['hoja']) && $_GET['hoja'] === '1';
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= htmlspecialchars($titulo) ?> - Sistema de Almacén</title>
+  <link rel="icon" type="image/webp" href="assets/css/img/logo_cecyte_grande.webp">
   <link rel="stylesheet" href="assets/css/style.css?v=6">
   <?php if ($hoja): ?>
   <style media="print">
