@@ -1026,15 +1026,16 @@ body.recibo-hoja {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   box-sizing: border-box;
 }
 
-/* Formato vertical oficio: en pantalla se ve a proporción, al imprimir ocupa toda la hoja */
+/* Formato vertical carta: en pantalla se ve a proporción, al imprimir ocupa toda la hoja; height auto para que con muchos ítems la hoja crezca y se vean todos */
 .recibo-sheet {
-  width: 216mm;
+  width: 215mm;
   max-width: calc(100vw - 32px);
-  min-height: 330mm;
+  min-height: 279mm;
+  height: auto;
   background: #fff;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
   padding: 14mm 16mm 18mm;
@@ -1052,11 +1053,11 @@ body.recibo-hoja {
   flex-shrink: 0;
 }
 
-/* Contenedor de la tabla: ocupa el espacio restante y evita que lo de abajo se corte */
+/* Contenedor de la tabla: muestra todos los ítems (sin recortar); la hoja crece si hay muchos */
 .recibo-hoja .recibo-sheet .recibo-tabla-wrap {
   flex: 1 1 auto;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   flex-direction: column;
   margin-bottom: 0.5rem;
@@ -1163,18 +1164,18 @@ body.recibo-hoja {
     width: auto;
     min-height: 0;
   }
-  /* Imprimir: recibo de salida (una hoja oficio) */
+  /* Imprimir: recibo de entrada/salida; si hay muchos ítems se usan varias hojas */
   body.recibo-hoja {
     padding: 0;
     margin: 0;
     background: #fff;
-    width: 216mm;
-    min-height: 330mm;
+    width: auto;
+    min-height: 0;
   }
 
   @page {
-    size: 216mm 330mm;
-    margin: 15mm;
+    size: letter;
+    margin: 10mm;
   }
 
   .recibo-sheet-wrap {
@@ -1182,19 +1183,22 @@ body.recibo-hoja {
     margin: 0;
     min-height: 0;
     display: block;
-    width: 216mm;
-    height: 330mm;
+    width: 100%;
+    max-width: 215mm;
+    height: auto !important;
+    box-sizing: border-box;
   }
 
   .recibo-sheet {
-    width: 216mm !important;
-    height: 330mm !important;
-    min-height: 330mm !important;
-    max-width: none !important;
+    width: 100% !important;
+    max-width: 215mm !important;
+    height: auto !important;
+    min-height: 0 !important;
     box-shadow: none;
-    padding: 12mm 14mm 20mm 14mm !important;
-    margin: 0 !important;
-    page-break-after: avoid;
+    padding: 8mm 10mm 14mm 10mm !important;
+    margin: 0 auto !important;
+    page-break-after: auto;
+    box-sizing: border-box;
   }
 
   /* Que la zona de abajo no se corte: bloque de firma y pie juntos */
@@ -1203,8 +1207,25 @@ body.recibo-hoja {
     page-break-inside: avoid;
   }
 
+  /* Con pocos ítems: mantener total y firma en la misma hoja que la tabla */
+  .recibo-hoja .recibo-sheet .recibo-total,
+  .recibo-hoja .recibo-sheet .recibo-firma-block {
+    page-break-before: avoid;
+  }
+
   .recibo-hoja .recibo-sheet .recibo-tabla-wrap {
     min-height: 0;
+    overflow: visible;
+  }
+
+  /* Repetir encabezado de la tabla en cada hoja al imprimir */
+  .recibo-hoja .recibo-sheet .recibo-tabla thead {
+    display: table-header-group;
+  }
+
+  /* No cortar una fila a la mitad: si no cabe entera, pasa a la siguiente hoja */
+  .recibo-hoja .recibo-sheet .recibo-tabla tbody tr {
+    page-break-inside: avoid;
   }
 
   /* Recibo mensual: varias hojas, nada cortado */

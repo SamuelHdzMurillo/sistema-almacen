@@ -23,7 +23,7 @@ $totalUnidades = array_sum(array_column($entrada['detalle'], 'cantidad'));
   <title><?= htmlspecialchars($titulo) ?></title>
   <link rel="stylesheet" href="assets/css/style.css?v=5">
   <?php if ($hoja): ?>
-  <style media="print">@page { size: 216mm 330mm; margin: 0; }</style>
+  <style media="print">@page { size: letter; margin: 10mm; }</style>
   <?php endif; ?>
 </head>
 <body class="<?= $hoja ? 'recibo-hoja' : 'recibo-page' ?>">

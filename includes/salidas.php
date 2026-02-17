@@ -49,6 +49,7 @@ function obtenerSalidaConDetalle(int $id): ?array {
         FROM detalle_salidas ds
         JOIN productos p ON p.id = ds.producto_id
         WHERE ds.salida_id = ?
+        ORDER BY ds.id
     ');
     $stmt2->execute([$id]);
     $s['detalle'] = $stmt2->fetchAll();

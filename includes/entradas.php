@@ -28,6 +28,7 @@ function obtenerEntradaConDetalle(int $id): ?array {
         FROM detalle_entradas de
         JOIN productos p ON p.id = de.producto_id
         WHERE de.entrada_id = ?
+        ORDER BY de.id
     ');
     $stmt2->execute([$id]);
     $e['detalle'] = $stmt2->fetchAll();
