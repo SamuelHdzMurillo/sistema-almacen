@@ -57,13 +57,17 @@ $vista = isset($_GET['vista']) && $_GET['vista'] === 'mes' ? 'mes' : 'actual';
           <h1 class="inventario-page-titulo">Inventario</h1>
           <p class="inventario-page-subtitulo"><?= $vista === 'actual' ? 'Stock en existencia por producto' : 'Resumen por mes · ' . htmlspecialchars($periodoTexto) ?></p>
         </div>
-        <?php if ($vista === 'mes'): ?>
         <div class="inventario-page-header-accion">
+          <?php if ($vista === 'actual'): ?>
+          <a href="imprimir-inventario-actual.php?hoja=1" target="_blank" rel="noopener" class="btn btn-primary btn-imprimir-recibo">
+            Imprimir inventario actual
+          </a>
+          <?php elseif ($vista === 'mes'): ?>
           <a href="recibo-mes.php?anio=<?= $anio ?>&mes=<?= $mes ?>&hoja=1" target="_blank" rel="noopener" class="btn btn-primary btn-imprimir-recibo">
             Imprimir recibo del mes
           </a>
+          <?php endif; ?>
         </div>
-        <?php endif; ?>
       </header>
 
       <!-- Pestañas -->
