@@ -87,7 +87,7 @@ $receptores = listarReceptores();
     <p class="card-sub">Al guardar se generará automáticamente el recibo con los datos indicados.</p>
     <?php if ($error): ?><div class="alert alert-error"><?= htmlspecialchars($error) ?></div><?php endif; ?>
 
-    <form method="post" action="nueva-salida.php">
+    <form method="post" action="nueva-salida.php" onsubmit="return confirm('¿Está seguro de que desea continuar y registrar la salida?');">
       <div class="form-card">
         <div class="form-group">
           <label>Fecha</label>

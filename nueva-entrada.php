@@ -82,7 +82,7 @@ $quienRecibeEntrada = listarQuienRecibeEntrada();
     <p class="card-sub">Al guardar se generará el recibo de entrada con los datos indicados.</p>
     <?php if ($error): ?><div class="alert alert-error"><?= htmlspecialchars($error) ?></div><?php endif; ?>
 
-    <form method="post" action="nueva-entrada.php">
+    <form method="post" action="nueva-entrada.php" onsubmit="return confirm('¿Está seguro de que desea continuar y registrar la entrada?');">
       <div class="form-card">
         <div class="form-group">
           <label>Fecha</label>
