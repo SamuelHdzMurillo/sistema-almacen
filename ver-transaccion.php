@@ -27,6 +27,8 @@ if (!$transaccion) {
 
 $estado = $transaccion['estado'] ?? 'completada';
 $puedeCancelar = ($estado === 'completada');
+$mensajeLineaCancelada = isset($_GET['cancelado_linea']) && $_GET['cancelado_linea'] === '1';
+$errorLinea = isset($_GET['error_linea']) && $_GET['error_linea'] === '1';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -59,6 +61,12 @@ $puedeCancelar = ($estado === 'completada');
 
     <h1><?= htmlspecialchars($titulo) ?></h1>
     <p><span class="status-badge status-<?= htmlspecialchars($estado) ?>"><?= htmlspecialchars($estado) ?></span></p>
+    <?php if ($mensajeLineaCancelada): ?>
+      <div class="alert alert-success">Línea cancelada. El stock se ha actualizado.</div>
+    <?php endif; ?>
+    <?php if ($errorLinea): ?>
+      <div class="alert alert-error">No se pudo cancelar la línea (ya estaba cancelada o no existe).</div>
+    <?php endif; ?>
 
     <?php if ($tipo === 'in'): ?>
     <p class="recibo-reimprimir-acciones">
@@ -122,14 +130,32 @@ $puedeCancelar = ($estado === 'completada');
               <th>Producto</th>
               <th>Cantidad</th>
               <th>Unidad</th>
+              <?php if ($tipo === 'in'): ?><th>Estado</th><th>Acciones</th><?php endif; ?>
             </tr>
           </thead>
           <tbody>
-            <?php foreach ($transaccion['detalle'] as $d): ?>
-            <tr>
+            <?php foreach ($transaccion['detalle'] as $d):
+              $estadoLinea = $d['estado'] ?? 'activa';
+              $lineaActiva = ($estadoLinea === 'activa');
+            ?>
+            <tr class="<?= $tipo === 'in' && !$lineaActiva ? 'linea-cancelada' : '' ?>">
               <td><?= htmlspecialchars($d['producto_nombre']) ?></td>
               <td><?= (int)$d['cantidad'] ?></td>
               <td><?= htmlspecialchars($d['unidad']) ?></td>
+              <?php if ($tipo === 'in'): ?>
+              <td><span class="status-badge status-<?= htmlspecialchars($estadoLinea) ?>"><?= htmlspecialchars($estadoLinea) ?></span></td>
+              <td>
+                <?php if ($lineaActiva && $puedeCancelar): ?>
+                <form method="post" action="cancelar-linea-entrada.php" style="display:inline;" onsubmit="return confirm('¿Cancelar esta línea? El stock dejará de contar estos ítems.');">
+                  <input type="hidden" name="id" value="<?= (int)($d['id'] ?? 0) ?>">
+                  <input type="hidden" name="confirmar" value="1">
+                  <button type="submit" class="btn btn-secondary btn-sm" style="background: var(--accent-orange); color: #fff;">Cancelar línea</button>
+                </form>
+                <?php else: ?>
+                —
+                <?php endif; ?>
+              </td>
+              <?php endif; ?>
             </tr>
             <?php endforeach; ?>
           </tbody>

@@ -7,7 +7,7 @@ function inventarioPorProducto(): array {
         SELECT p.id, p.codigo, p.nombre, p.unidad,
           (SELECT COALESCE(SUM(de.cantidad), 0) FROM detalle_entradas de
            JOIN entradas e ON e.id = de.entrada_id AND e.estado != 'cancelada'
-           WHERE de.producto_id = p.id) -
+           WHERE de.producto_id = p.id AND (de.estado = 'activa' OR de.estado IS NULL)) -
           (SELECT COALESCE(SUM(ds.cantidad), 0) FROM detalle_salidas ds
            JOIN salidas s ON s.id = ds.salida_id AND s.estado != 'cancelada'
            WHERE ds.producto_id = p.id) AS stock
@@ -19,7 +19,7 @@ function inventarioPorProducto(): array {
 
 function totalItems(): int {
     $pdo = getDB();
-    $e = $pdo->query("SELECT COALESCE(SUM(de.cantidad), 0) AS t FROM detalle_entradas de JOIN entradas e ON e.id = de.entrada_id AND e.estado != 'cancelada'")->fetch();
+    $e = $pdo->query("SELECT COALESCE(SUM(de.cantidad), 0) AS t FROM detalle_entradas de JOIN entradas e ON e.id = de.entrada_id AND e.estado != 'cancelada' AND (de.estado = 'activa' OR de.estado IS NULL)")->fetch();
     $s = $pdo->query("SELECT COALESCE(SUM(ds.cantidad), 0) AS t FROM detalle_salidas ds JOIN salidas s ON s.id = ds.salida_id AND s.estado != 'cancelada'")->fetch();
     return (int)($e['t'] - $s['t']);
 }

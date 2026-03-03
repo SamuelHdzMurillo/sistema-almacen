@@ -13,7 +13,7 @@ function listarTransaccionesRecientes(int $limite = 20, ?string $tipo = null, ?s
                    e.created_at, e.created_by, u.nombre AS created_by_nombre
             FROM entradas e
             LEFT JOIN catalogo_proveedor prov ON prov.id = e.proveedor_id
-            JOIN detalle_entradas de ON de.entrada_id = e.id
+            JOIN detalle_entradas de ON de.entrada_id = e.id AND (de.estado = 'activa' OR de.estado IS NULL)
             JOIN productos p ON p.id = de.producto_id
             LEFT JOIN usuarios u ON u.id = e.created_by
             WHERE 1=1

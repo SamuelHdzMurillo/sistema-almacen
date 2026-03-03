@@ -24,7 +24,7 @@ function obtenerEntradaConDetalle(int $id): ?array {
     $e = $stmt->fetch();
     if (!$e) return null;
     $stmt2 = $pdo->prepare('
-        SELECT de.id, de.producto_id, de.cantidad, p.nombre AS producto_nombre, p.unidad
+        SELECT de.id, de.producto_id, de.cantidad, COALESCE(de.estado, \'activa\') AS estado, p.nombre AS producto_nombre, p.unidad
         FROM detalle_entradas de
         JOIN productos p ON p.id = de.producto_id
         WHERE de.entrada_id = ?
@@ -58,13 +58,13 @@ function crearEntrada(string $fecha, int $proveedorId, int $quienRecibeId, array
 
 function totalEntradasEsteMes(): int {
     $pdo = getDB();
-    $stmt = $pdo->query("SELECT COALESCE(SUM(cantidad), 0) AS t FROM detalle_entradas de JOIN entradas e ON e.id = de.entrada_id WHERE e.estado = 'completada' AND YEAR(e.fecha) = YEAR(CURDATE()) AND MONTH(e.fecha) = MONTH(CURDATE())");
+    $stmt = $pdo->query("SELECT COALESCE(SUM(de.cantidad), 0) AS t FROM detalle_entradas de JOIN entradas e ON e.id = de.entrada_id WHERE e.estado = 'completada' AND (de.estado = 'activa' OR de.estado IS NULL) AND YEAR(e.fecha) = YEAR(CURDATE()) AND MONTH(e.fecha) = MONTH(CURDATE())");
     return (int) $stmt->fetch()['t'];
 }
 
 function totalEntradasMesAnterior(): int {
     $pdo = getDB();
-    $stmt = $pdo->query("SELECT COALESCE(SUM(cantidad), 0) AS t FROM detalle_entradas de JOIN entradas e ON e.id = de.entrada_id WHERE e.estado = 'completada' AND e.fecha >= DATE_SUB(CURDATE(), INTERVAL 2 MONTH) AND e.fecha < DATE_SUB(CURDATE(), INTERVAL 1 MONTH)");
+    $stmt = $pdo->query("SELECT COALESCE(SUM(de.cantidad), 0) AS t FROM detalle_entradas de JOIN entradas e ON e.id = de.entrada_id WHERE e.estado = 'completada' AND (de.estado = 'activa' OR de.estado IS NULL) AND e.fecha >= DATE_SUB(CURDATE(), INTERVAL 2 MONTH) AND e.fecha < DATE_SUB(CURDATE(), INTERVAL 1 MONTH)");
     return (int) $stmt->fetch()['t'];
 }
 
@@ -73,5 +73,29 @@ function cancelarEntrada(int $id): bool {
     $pdo = getDB();
     $stmt = $pdo->prepare('UPDATE entradas SET estado = ? WHERE id = ? AND estado = ?');
     $stmt->execute(['cancelada', $id, 'completada']);
+    return $stmt->rowCount() > 0;
+}
+
+/** Devuelve una línea de detalle_entradas por ID (para redirigir tras cancelar). */
+function obtenerLineaEntrada(int $detalleId): ?array {
+    $pdo = getDB();
+    $stmt = $pdo->prepare('SELECT id, entrada_id, producto_id, cantidad, COALESCE(estado, \'activa\') AS estado FROM detalle_entradas WHERE id = ?');
+    $stmt->execute([$detalleId]);
+    $row = $stmt->fetch();
+    return $row ?: null;
+}
+
+/** Marca una línea de detalle de entrada como cancelada. Solo si la entrada está completada y la línea activa. */
+function cancelarLineaEntrada(int $detalleId): bool {
+    $pdo = getDB();
+    $linea = obtenerLineaEntrada($detalleId);
+    if (!$linea || ($linea['estado'] ?? 'activa') === 'cancelada') {
+        return false;
+    }
+    $stmt = $pdo->prepare('UPDATE detalle_entradas de
+        INNER JOIN entradas e ON e.id = de.entrada_id AND e.estado = \'completada\'
+        SET de.estado = \'cancelada\'
+        WHERE de.id = ? AND (de.estado = \'activa\' OR de.estado IS NULL)');
+    $stmt->execute([$detalleId]);
     return $stmt->rowCount() > 0;
 }

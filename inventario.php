@@ -84,9 +84,15 @@ $vista = isset($_GET['vista']) && $_GET['vista'] === 'mes' ? 'mes' : 'actual';
         <article class="inventario-panel inventario-panel-actual">
           <header class="inventario-panel-cabecera">
             <h3 class="inventario-panel-titulo">Stock por producto</h3>
-            <span class="inventario-panel-contador"><?= count($inventarioActual) ?></span>
+            <span class="inventario-panel-contador" id="inventario-contador-actual"><?= count($inventarioActual) ?></span>
           </header>
           <div class="inventario-panel-cuerpo">
+            <div class="inventario-filtro-buscar">
+              <label for="inventario-buscador" class="inventario-form-label">
+                <span class="inventario-form-etiqueta">Buscar</span>
+                <input type="search" id="inventario-buscador" class="inventario-form-input" placeholder="Código, producto o unidad…" autocomplete="off" aria-label="Buscar en inventario">
+              </label>
+            </div>
             <div class="inventario-tabla-wrap">
               <table class="inventario-tabla inventario-tabla-actual">
                 <thead>
@@ -107,14 +113,14 @@ $vista = isset($_GET['vista']) && $_GET['vista'] === 'mes' ? 'mes' : 'actual';
                       $stock = (int) $inv['stock'];
                       $totalUnidades += $stock;
                     ?>
-                      <tr>
+                      <tr class="inventario-fila-producto" data-busqueda="<?= htmlspecialchars(mb_strtolower(($inv['codigo'] ?? '') . ' ' . ($inv['nombre'] ?? '') . ' ' . ($inv['unidad'] ?? ''))) ?>">
                         <td class="inventario-col-codigo"><?= htmlspecialchars($inv['codigo'] ?? '—') ?></td>
                         <td class="inventario-col-producto"><strong><?= htmlspecialchars($inv['nombre']) ?></strong></td>
                         <td class="inventario-col-unidad"><?= htmlspecialchars($inv['unidad'] ?? 'und') ?></td>
                         <td class="inventario-th-num inventario-col-cantidad <?= $stock > 0 ? 'qty-pos' : ($stock < 0 ? 'qty-neg' : '') ?>"><?= number_format($stock) ?></td>
                       </tr>
                     <?php endforeach; ?>
-                    <tr class="inventario-tabla-total">
+                    <tr class="inventario-tabla-total inventario-fila-total">
                       <td colspan="3" class="inventario-td-total-label"><strong>Total unidades en almacén</strong></td>
                       <td class="inventario-th-num inventario-col-cantidad inventario-td-total-num <?= $totalUnidades >= 0 ? 'qty-pos' : 'qty-neg' ?>"><?= number_format($totalUnidades) ?></td>
                     </tr>
@@ -274,5 +280,30 @@ $vista = isset($_GET['vista']) && $_GET['vista'] === 'mes' ? 'mes' : 'actual';
       </div>
     </main>
   </div>
+  <script>
+  (function() {
+    var buscador = document.getElementById('inventario-buscador');
+    var panel = document.querySelector('.inventario-panel-actual');
+    if (!buscador || !panel) return;
+    var filas = panel.querySelectorAll('.inventario-fila-producto');
+    var filaTotal = panel.querySelector('.inventario-fila-total');
+    var contador = document.getElementById('inventario-contador-actual');
+    var totalProductos = filas.length;
+    function filtrar() {
+      var q = (buscador.value || '').trim().toLowerCase();
+      var visibles = 0;
+      filas.forEach(function(tr) {
+        var texto = (tr.getAttribute('data-busqueda') || '').toLowerCase();
+        var coincide = !q || texto.indexOf(q) !== -1;
+        tr.style.display = coincide ? '' : 'none';
+        if (coincide) visibles++;
+      });
+      if (filaTotal) filaTotal.style.display = q ? (visibles === 0 ? 'none' : '') : '';
+      if (contador) contador.textContent = q ? visibles + ' / ' + totalProductos : totalProductos;
+    }
+    buscador.addEventListener('input', filtrar);
+    buscador.addEventListener('keyup', filtrar);
+  })();
+  </script>
 </body>
 </html>

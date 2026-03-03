@@ -26,7 +26,7 @@ function listarEntradasPorMes(int $anio, int $mes): array {
             SELECT de.cantidad, p.nombre AS producto_nombre, p.unidad
             FROM detalle_entradas de
             JOIN productos p ON p.id = de.producto_id
-            WHERE de.entrada_id = ?
+            WHERE de.entrada_id = ? AND (de.estado = 'activa' OR de.estado IS NULL)
         ");
         $st->execute([$e['id']]);
         $e['detalle'] = $st->fetchAll();
@@ -77,7 +77,7 @@ function resumenMes(int $anio, int $mes): array {
         SELECT COALESCE(SUM(de.cantidad), 0) AS total
         FROM detalle_entradas de
         JOIN entradas e ON e.id = de.entrada_id
-        WHERE e.estado = 'completada' AND YEAR(e.fecha) = ? AND MONTH(e.fecha) = ?
+        WHERE e.estado = 'completada' AND (de.estado = 'activa' OR de.estado IS NULL) AND YEAR(e.fecha) = ? AND MONTH(e.fecha) = ?
     ");
     $stmt->execute([$anio, $mes]);
     $totalEntradas = (int) $stmt->fetch()['total'];

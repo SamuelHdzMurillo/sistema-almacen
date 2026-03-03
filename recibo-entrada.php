@@ -13,7 +13,10 @@ if (!$entrada) {
 
 $hoja = isset($_GET['hoja']) && $_GET['hoja'] === '1';
 $titulo = 'Recibo de entrada - ' . $entrada['referencia'];
-$totalUnidades = array_sum(array_column($entrada['detalle'], 'cantidad'));
+$detalleActivo = array_values(array_filter($entrada['detalle'], function ($d) {
+    return ($d['estado'] ?? 'activa') === 'activa';
+}));
+$totalUnidades = array_sum(array_column($detalleActivo, 'cantidad'));
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -72,7 +75,7 @@ $totalUnidades = array_sum(array_column($entrada['detalle'], 'cantidad'));
             </tr>
           </thead>
           <tbody>
-            <?php foreach ($entrada['detalle'] as $i => $d): ?>
+            <?php foreach ($detalleActivo as $i => $d): ?>
             <tr>
               <td><?= $i + 1 ?></td>
               <td><?= htmlspecialchars($d['producto_nombre']) ?></td>
