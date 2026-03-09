@@ -544,6 +544,14 @@ tr:hover td {
   padding: 0.4rem;
   font-size: 0.9rem;
 }
+.lineas-table .col-stock {
+  width: 120px;
+  white-space: nowrap;
+}
+.lineas-table .stock-display {
+  font-size: 0.9rem;
+  color: var(--text-muted, #666);
+}
 .lineas-table .col-qty {
   width: 100px;
 }

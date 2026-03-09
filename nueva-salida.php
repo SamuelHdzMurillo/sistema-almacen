@@ -3,6 +3,7 @@ require_once __DIR__ . '/includes/auth.php';
 requerirLogin();
 require_once __DIR__ . '/includes/salidas.php';
 require_once __DIR__ . '/includes/productos.php';
+require_once __DIR__ . '/includes/inventario.php';
 require_once __DIR__ . '/includes/catalogos_salida.php';
 
 $error = '';
@@ -49,6 +50,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $productos = listarProductos();
+$inventario = inventarioPorProducto();
+$stockPorId = [];
+foreach ($inventario as $inv) {
+    $stockPorId[(int)$inv['id']] = (int)($inv['stock'] ?? 0);
+}
+$stockInfo = [];
+foreach ($productos as $p) {
+    $id = (int)$p['id'];
+    $stockInfo[$id] = ['stock' => $stockPorId[$id] ?? 0, 'unidad' => $p['unidad'] ?? 'und'];
+}
 $quienEntrega = listarQuienEntrega();
 $planteles = listarPlanteles();
 $receptores = listarReceptores();
@@ -134,6 +145,7 @@ $receptores = listarReceptores();
           <thead>
             <tr>
               <th>Producto</th>
+              <th class="col-stock">En almacén</th>
               <th class="col-qty">Cantidad</th>
               <th class="col-del"></th>
             </tr>
@@ -148,6 +160,7 @@ $receptores = listarReceptores();
                   <?php endforeach; ?>
                 </select>
               </td>
+              <td class="col-stock"><span class="stock-display" aria-live="polite">—</span></td>
               <td><input type="number" name="cantidad[]" min="1" value="1" required></td>
               <td></td>
             </tr>
@@ -161,6 +174,32 @@ $receptores = listarReceptores();
   </div>
 
   <script>
+    var stockPorProducto = <?= json_encode($stockInfo) ?>;
+
+    function actualizarStockEnFila(fila) {
+      var sel = fila.querySelector('select[name="producto_id[]"]');
+      var span = fila.querySelector('.stock-display');
+      if (!sel || !span) return;
+      var id = sel.value;
+      if (!id) {
+        span.textContent = '—';
+        return;
+      }
+      var info = stockPorProducto[id];
+      if (!info) {
+        span.textContent = '—';
+        return;
+      }
+      var u = info.unidad || 'und';
+      span.textContent = info.stock + ' ' + u;
+    }
+
+    document.getElementById('lineas').addEventListener('change', function(e) {
+      if (e.target && e.target.matches('select[name="producto_id[]"]')) {
+        actualizarStockEnFila(e.target.closest('tr'));
+      }
+    });
+
     document.getElementById('addLine').addEventListener('click', function() {
       const tbody = document.getElementById('lineas');
       const first = tbody.querySelector('tr.linea');
@@ -169,6 +208,8 @@ $receptores = listarReceptores();
         if (el.name && el.name.includes('cantidad')) el.value = 1;
         else if (el.tagName === 'SELECT') el.selectedIndex = 0;
       });
+      var stockSpan = clone.querySelector('.stock-display');
+      if (stockSpan) stockSpan.textContent = '—';
       const lastTd = clone.querySelector('td:last-child');
       lastTd.innerHTML = '<button type="button" class="btn btn-secondary btn-sm" onclick="this.closest(\'tr\').remove()">✕</button>';
       tbody.appendChild(clone);
