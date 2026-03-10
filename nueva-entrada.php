@@ -55,9 +55,9 @@ $quienRecibeEntrada = listarQuienRecibeEntrada();
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nueva entrada - Sistema de Almacén</title>
   <link rel="icon" type="image/webp" href="assets/css/img/logo_cecyte_grande.webp">
-  <link rel="stylesheet" href="assets/css/style.css?v=4">
+  <link rel="stylesheet" href="assets/css/style.css?v=5">
 </head>
-<body>
+<body class="pagina-nueva-entrada">
   <div class="container">
     <header class="header">
       <div class="logo">
@@ -69,14 +69,7 @@ $quienRecibeEntrada = listarQuienRecibeEntrada();
         <a href="logout.php" class="btn btn-secondary">Salir</a>
       </div>
     </header>
-    <nav class="nav-links">
-      <a href="index.php">Dashboard</a>
-      <a href="transacciones.php">Transacciones</a>
-      <a href="nueva-entrada.php" class="active">Nueva entrada</a>
-      <a href="nueva-salida.php">Nueva salida</a>
-      <a href="inventario.php">Inventario</a>
-      <a href="productos.php">Productos</a>
-    </nav>
+    <?php include __DIR__ . '/includes/nav.php'; ?>
 
     <h1 class="page-title">Nueva entrada al almacén</h1>
     <p class="form-card-sub">Al guardar se generará el recibo de entrada con los datos indicados.</p>

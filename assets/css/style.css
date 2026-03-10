@@ -486,26 +486,86 @@ tr:hover td {
   color: #e65100;
 }
 
-/* Navegación */
+/* Navegación principal — estilo profesional */
 .nav-links {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-bottom: 1.25rem;
+  padding: 0.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
 }
 
+.nav-links .nav-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.nav-links .nav-link:hover {
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+
+.nav-links .nav-link.active {
+  color: #fff;
+  background: var(--accent-green);
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(76, 175, 80, 0.35);
+  pointer-events: none;
+}
+
+.nav-links .nav-link.active:hover {
+  color: #fff;
+  background: var(--accent-green);
+}
+
+/* Compatibilidad: enlaces sin clase .nav-link (por si se usa el nav antiguo) */
 .nav-links a {
   color: var(--text-muted);
   text-decoration: none;
-  padding: 0.4rem 0.8rem;
-  border-radius: 6px;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
   font-size: 0.9rem;
+  font-weight: 500;
+  transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 
-.nav-links a:hover,
+.nav-links a:hover {
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+
 .nav-links a.active {
-  color: #1a1a1a;
-  background: #ffffff;
-  border: 1px solid #dddddd;
+  color: #fff;
+  background: var(--accent-green);
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(76, 175, 80, 0.35);
+  pointer-events: none;
+}
+
+/* Subnavegación (ej. Transacciones / Entregas por plantel) */
+.nav-links-sub {
+  padding: 0.4rem 0.5rem;
+  background: var(--bg-secondary);
+  border-color: #e8e8e8;
+}
+
+.nav-links-sub .nav-link.active,
+.nav-links-sub a.active {
+  background: var(--accent-green);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(76, 175, 80, 0.35);
 }
 
 /* Formularios */
@@ -1480,8 +1540,133 @@ body.recibo-hoja {
 .pagina-inventario .container {
   padding-bottom: 2.5rem;
 }
+/* Asegurar que el nav principal use el estilo nuevo en la página de inventario */
 .pagina-inventario .nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
   margin-bottom: 1.5rem;
+  padding: 0.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.pagina-inventario .nav-links .nav-link,
+.pagina-inventario .nav-links a {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-radius: 8px;
+  transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+.pagina-inventario .nav-links .nav-link:hover,
+.pagina-inventario .nav-links a:hover {
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+.pagina-inventario .nav-links .nav-link.active,
+.pagina-inventario .nav-links a.active {
+  color: #fff;
+  background: var(--accent-green);
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(76, 175, 80, 0.35);
+  pointer-events: none;
+}
+.pagina-inventario .nav-links .nav-link.active:hover,
+.pagina-inventario .nav-links a.active:hover {
+  color: #fff;
+  background: var(--accent-green);
+}
+
+/* Nav nuevo en página Nueva entrada */
+.pagina-nueva-entrada .nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-bottom: 1.25rem;
+  padding: 0.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.pagina-nueva-entrada .nav-links .nav-link,
+.pagina-nueva-entrada .nav-links a {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-radius: 8px;
+  transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+.pagina-nueva-entrada .nav-links .nav-link:hover,
+.pagina-nueva-entrada .nav-links a:hover {
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+.pagina-nueva-entrada .nav-links .nav-link.active,
+.pagina-nueva-entrada .nav-links a.active {
+  color: #fff;
+  background: var(--accent-green);
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(76, 175, 80, 0.35);
+  pointer-events: none;
+}
+.pagina-nueva-entrada .nav-links .nav-link.active:hover,
+.pagina-nueva-entrada .nav-links a.active:hover {
+  color: #fff;
+  background: var(--accent-green);
+}
+
+/* Nav nuevo en página Nueva salida */
+.pagina-nueva-salida .nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-bottom: 1.25rem;
+  padding: 0.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.pagina-nueva-salida .nav-links .nav-link,
+.pagina-nueva-salida .nav-links a {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-radius: 8px;
+  transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+.pagina-nueva-salida .nav-links .nav-link:hover,
+.pagina-nueva-salida .nav-links a:hover {
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+.pagina-nueva-salida .nav-links .nav-link.active,
+.pagina-nueva-salida .nav-links a.active {
+  color: #fff;
+  background: var(--accent-green);
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(76, 175, 80, 0.35);
+  pointer-events: none;
+}
+.pagina-nueva-salida .nav-links .nav-link.active:hover,
+.pagina-nueva-salida .nav-links a.active:hover {
+  color: #fff;
+  background: var(--accent-green);
 }
 
 .inventario-main {
@@ -1526,35 +1711,43 @@ body.recibo-hoja {
   white-space: nowrap;
 }
 
-/* Pestañas Inventario actual / Inventario por mes */
+/* Pestañas Inventario actual / Inventario por mes — mismo estilo que nav principal */
 .inventario-tabs {
   display: flex;
-  gap: 0;
-  border-bottom: 2px solid var(--border);
-  margin: 0 0 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0 0 1.25rem;
+  padding: 0.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
 }
 .inventario-tab {
-  display: inline-block;
-  padding: 0.75rem 1.5rem;
-  font-size: 0.95rem;
-  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
   color: var(--text-muted);
   text-decoration: none;
-  border: 1px solid transparent;
-  border-bottom: none;
-  border-radius: var(--radius) var(--radius) 0 0;
-  margin-bottom: -2px;
-  transition: color 0.2s, background 0.2s, border-color 0.2s;
+  border-radius: 8px;
+  transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 .inventario-tab:hover {
   color: var(--text-primary);
   background: var(--bg-secondary);
 }
 .inventario-tab.active {
-  color: var(--primary);
-  background: var(--bg-card);
-  border-color: var(--border);
-  border-bottom-color: var(--bg-card);
+  color: #fff;
+  background: var(--accent-green);
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(76, 175, 80, 0.35);
+  pointer-events: none;
+}
+.inventario-tab.active:hover {
+  color: #fff;
+  background: var(--accent-green);
 }
 .inventario-pestana-content {
   display: none;

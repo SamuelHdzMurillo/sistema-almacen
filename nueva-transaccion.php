@@ -20,14 +20,7 @@ requerirLogin();
       </div>
       <a href="logout.php" class="btn btn-secondary">Salir</a>
     </header>
-    <nav class="nav-links">
-      <a href="index.php">Dashboard</a>
-      <a href="transacciones.php">Transacciones</a>
-      <a href="nueva-entrada.php">Nueva entrada</a>
-      <a href="nueva-salida.php">Nueva salida</a>
-      <a href="inventario.php">Inventario</a>
-      <a href="productos.php">Productos</a>
-    </nav>
+    <?php include __DIR__ . '/includes/nav.php'; ?>
     <div class="form-card">
       <h2 class="form-card-title">Nueva transacción</h2>
       <p class="card-sub">Elija el tipo de movimiento:</p>

@@ -41,14 +41,7 @@ $entregas = listarEntregasPorPlantelYReceptor(
       </div>
     </header>
 
-    <nav class="nav-links">
-      <a href="index.php">Dashboard</a>
-      <a href="transacciones.php" class="active">Transacciones</a>
-      <a href="inventario.php">Inventario</a>
-      <a href="nueva-entrada.php">Nueva entrada</a>
-      <a href="nueva-salida.php">Nueva salida</a>
-      <a href="productos.php">Productos</a>
-    </nav>
+    <?php include __DIR__ . '/includes/nav.php'; ?>
 
     <nav class="nav-links nav-links-sub" style="margin-top:-0.5rem; margin-bottom:1rem;">
       <a href="transacciones.php">Listado de transacciones</a>

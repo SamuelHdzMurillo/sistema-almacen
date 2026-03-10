@@ -27,7 +27,7 @@ $vista = isset($_GET['vista']) && $_GET['vista'] === 'mes' ? 'mes' : 'actual';
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inventario — <?= htmlspecialchars($periodoTexto) ?> - Sistema de Almacén</title>
   <link rel="icon" type="image/webp" href="assets/css/img/logo_cecyte_grande.webp">
-  <link rel="stylesheet" href="assets/css/style.css?v=4">
+  <link rel="stylesheet" href="assets/css/style.css?v=5">
 </head>
 <body class="pagina-inventario">
   <div class="container">
@@ -42,14 +42,7 @@ $vista = isset($_GET['vista']) && $_GET['vista'] === 'mes' ? 'mes' : 'actual';
       </div>
     </header>
 
-    <nav class="nav-links">
-      <a href="index.php">Inicio</a>
-      <a href="transacciones.php">Transacciones</a>
-      <a href="inventario.php" class="active">Inventario</a>
-      <a href="nueva-entrada.php">Nueva entrada</a>
-      <a href="nueva-salida.php">Nueva salida</a>
-      <a href="productos.php">Productos</a>
-    </nav>
+    <?php include __DIR__ . '/includes/nav.php'; ?>
 
     <main class="inventario-main">
       <!-- Cabecera: título + período + acción principal -->

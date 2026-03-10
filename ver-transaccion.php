@@ -50,14 +50,7 @@ $errorLinea = isset($_GET['error_linea']) && $_GET['error_linea'] === '1';
         <a href="transacciones.php" class="btn btn-secondary">← Volver a transacciones</a>
       </div>
     </header>
-    <nav class="nav-links">
-      <a href="index.php">Dashboard</a>
-      <a href="transacciones.php" class="active">Transacciones</a>
-      <a href="nueva-entrada.php">Nueva entrada</a>
-      <a href="nueva-salida.php">Nueva salida</a>
-      <a href="inventario.php">Inventario</a>
-      <a href="productos.php">Productos</a>
-    </nav>
+    <?php include __DIR__ . '/includes/nav.php'; ?>
 
     <h1><?= htmlspecialchars($titulo) ?></h1>
     <p><span class="status-badge status-<?= htmlspecialchars($estado) ?>"><?= htmlspecialchars($estado) ?></span></p>

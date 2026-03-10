@@ -54,14 +54,7 @@ foreach ($inventario as $inv) {
         <a href="logout.php" class="btn btn-secondary">Salir</a>
       </div>
     </header>
-    <nav class="nav-links">
-      <a href="index.php">Dashboard</a>
-      <a href="transacciones.php">Transacciones</a>
-      <a href="inventario.php">Inventario</a>
-      <a href="nueva-entrada.php">Nueva entrada</a>
-      <a href="nueva-salida.php">Nueva salida</a>
-      <a href="productos.php" class="active">Productos</a>
-    </nav>
+    <?php include __DIR__ . '/includes/nav.php'; ?>
 
     <h1>Productos</h1>
     <?php if ($mensaje): ?><div class="alert alert-success"><?= htmlspecialchars($mensaje) ?></div><?php endif; ?>

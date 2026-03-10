@@ -37,14 +37,7 @@ $totalSalidas = (int) $pdo->query("SELECT COALESCE(SUM(ds.cantidad), 0) AS t FRO
       </div>
     </header>
 
-    <nav class="nav-links">
-      <a href="index.php" class="active">Inicio</a>
-      <a href="transacciones.php">Transacciones</a>
-      <a href="inventario.php">Inventario</a>
-      <a href="nueva-entrada.php">Nueva entrada</a>
-      <a href="nueva-salida.php">Nueva salida</a>
-      <a href="productos.php">Productos</a>
-    </nav>
+    <?php include __DIR__ . '/includes/nav.php'; ?>
 
     <section class="cards-grid">
       <div class="card card-destacada">
