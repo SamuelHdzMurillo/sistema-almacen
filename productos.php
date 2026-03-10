@@ -56,7 +56,11 @@ foreach ($inventario as $inv) {
     </header>
     <?php include __DIR__ . '/includes/nav.php'; ?>
 
-    <h1>Productos</h1>
+    <header class="page-header">
+      <div class="page-header-texto">
+        <h1 class="page-title">Productos</h1>
+      </div>
+    </header>
     <?php if ($mensaje): ?><div class="alert alert-success"><?= htmlspecialchars($mensaje) ?></div><?php endif; ?>
 
     <div class="form-layout-dual">

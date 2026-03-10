@@ -87,8 +87,12 @@ $receptores = listarReceptores();
     </header>
     <?php include __DIR__ . '/includes/nav.php'; ?>
 
-    <h1 class="page-title">Nueva salida del almacén</h1>
-    <p class="form-card-sub">Al guardar se generará automáticamente el recibo con los datos indicados.</p>
+    <header class="page-header">
+      <div class="page-header-texto">
+        <h1 class="page-title">Nueva salida del almacén</h1>
+        <p class="page-header-subtitulo">Al guardar se generará automáticamente el recibo con los datos indicados.</p>
+      </div>
+    </header>
     <?php if ($error): ?><div class="alert alert-error"><?= htmlspecialchars($error) ?></div><?php endif; ?>
 
     <form method="post" action="nueva-salida.php" id="formSalida" onsubmit="return validarSalida();">

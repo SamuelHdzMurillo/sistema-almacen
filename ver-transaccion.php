@@ -52,8 +52,12 @@ $errorLinea = isset($_GET['error_linea']) && $_GET['error_linea'] === '1';
     </header>
     <?php include __DIR__ . '/includes/nav.php'; ?>
 
-    <h1><?= htmlspecialchars($titulo) ?></h1>
-    <p><span class="status-badge status-<?= htmlspecialchars($estado) ?>"><?= htmlspecialchars($estado) ?></span></p>
+    <header class="page-header">
+      <div class="page-header-texto">
+        <h1 class="page-title"><?= htmlspecialchars($titulo) ?></h1>
+        <p><span class="status-badge status-<?= htmlspecialchars($estado) ?>"><?= htmlspecialchars($estado) ?></span></p>
+      </div>
+    </header>
     <?php if ($mensajeLineaCancelada): ?>
       <div class="alert alert-success">Línea cancelada. El stock se ha actualizado.</div>
     <?php endif; ?>

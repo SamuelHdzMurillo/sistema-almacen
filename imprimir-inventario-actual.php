@@ -198,13 +198,15 @@ $hoja = isset($_GET['hoja']) && $_GET['hoja'] === '1';
       </div>
       <a href="inventario.php?vista=actual" class="btn btn-secondary">Volver a inventario</a>
     </header>
-    <div class="recibo-recibido-msg">
-      <h1>Imprimir inventario actual</h1>
-      <p>Listado del inventario actual con espacio para marcar (palomear) lo que sí hay en almacén.</p>
-      <p class="recibo-recibido-accion">
+    <header class="page-header">
+      <div class="page-header-texto">
+        <h1 class="page-title">Imprimir inventario actual</h1>
+        <p class="page-header-subtitulo">Listado del inventario actual con espacio para marcar (palomear) lo que sí hay en almacén.</p>
+      </div>
+      <div class="page-header-accion">
         <a href="imprimir-inventario-actual.php?hoja=1" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Abrir inventario para imprimir</a>
-      </p>
-    </div>
+      </div>
+    </header>
   </div>
 <?php endif; ?>
 </body>

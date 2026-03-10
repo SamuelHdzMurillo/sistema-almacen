@@ -71,8 +71,12 @@ $quienRecibeEntrada = listarQuienRecibeEntrada();
     </header>
     <?php include __DIR__ . '/includes/nav.php'; ?>
 
-    <h1 class="page-title">Nueva entrada al almacén</h1>
-    <p class="form-card-sub">Al guardar se generará el recibo de entrada con los datos indicados.</p>
+    <header class="page-header">
+      <div class="page-header-texto">
+        <h1 class="page-title">Nueva entrada al almacén</h1>
+        <p class="page-header-subtitulo">Al guardar se generará el recibo de entrada con los datos indicados.</p>
+      </div>
+    </header>
     <?php if ($error): ?><div class="alert alert-error"><?= htmlspecialchars($error) ?></div><?php endif; ?>
 
     <form method="post" action="nueva-entrada.php" id="formEntrada" onsubmit="return confirm('¿Está seguro de que desea continuar y registrar la entrada?');">
