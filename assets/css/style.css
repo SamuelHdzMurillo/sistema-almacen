@@ -502,12 +502,18 @@ tr:hover td {
   font-size: 0.9rem;
   font-weight: 500;
   border-radius: 8px;
-  transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
 }
 
 .nav-links .nav-link:hover {
   color: var(--text-primary);
   background: var(--bg-secondary);
+}
+
+/* Animación al presionar el botón del nav */
+.nav-links .nav-link:not(.active):active {
+  transform: scale(0.96);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 .nav-links .nav-link.active {
@@ -531,12 +537,17 @@ tr:hover td {
   border-radius: 8px;
   font-size: 0.9rem;
   font-weight: 500;
-  transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  transition: color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
 }
 
 .nav-links a:hover {
   color: var(--text-primary);
   background: var(--bg-secondary);
+}
+
+.nav-links a:not(.active):active {
+  transform: scale(0.96);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 .nav-links a.active {
