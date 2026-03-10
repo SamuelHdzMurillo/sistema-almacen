@@ -130,6 +130,41 @@ body {
   font-size: 0.85rem;
 }
 
+.btn .btn-icon {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 0.35rem;
+}
+.btn .btn-icon svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  stroke: currentColor;
+  fill: none;
+}
+
+.type-badge .type-badge-icon {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 0.25rem;
+}
+.type-badge .type-badge-icon svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  stroke: currentColor;
+  fill: none;
+}
+
+.btn-icon-only {
+  padding: 0.4rem;
+  min-width: 2rem;
+}
+.btn-icon-only svg {
+  width: 1rem;
+  height: 1rem;
+  stroke: currentColor;
+  fill: none;
+}
+
 .btn-block {
   width: 100%;
   justify-content: center;
@@ -545,12 +580,23 @@ tr:hover td {
   font-size: 0.9rem;
 }
 .lineas-table .col-stock {
-  width: 120px;
-  white-space: nowrap;
+  width: 140px;
+  min-width: 120px;
+  vertical-align: top;
 }
-.lineas-table .stock-display {
+.lineas-table .col-stock .stock-display {
+  display: block;
   font-size: 0.9rem;
   color: var(--text-muted, #666);
+}
+.lineas-table .stock-warning-msg {
+  display: block;
+  font-size: 0.8rem;
+  margin-top: 0.2rem;
+}
+.lineas-table .stock-warning-msg.stock-warning {
+  color: var(--accent-red);
+  font-weight: 600;
 }
 .lineas-table .col-qty {
   width: 100px;
@@ -562,6 +608,155 @@ tr:hover td {
 .btn-add-line {
   margin-top: 0.5rem;
   font-size: 0.85rem;
+}
+
+/* Formularios entrada/salida: grid de campos y tarjetas */
+.form-card--wide {
+  max-width: none;
+}
+
+/* Layout dos columnas: datos del documento | detalle/artículos */
+.form-layout-dual {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 900px) {
+  .form-layout-dual {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-layout-dual .form-card--datos {
+  position: sticky;
+  top: 1rem;
+}
+
+@media (max-width: 900px) {
+  .form-layout-dual .form-card--datos {
+    position: static;
+  }
+}
+
+.form-layout-dual .form-card--detalle {
+  min-width: 0;
+}
+
+.form-layout-dual .form-card--detalle .table-wrap {
+  margin-bottom: 0;
+}
+
+.form-layout-dual .form-card--datos .form-grid {
+  grid-template-columns: 1fr;
+}
+
+.form-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.form-card-header-icon {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.form-card-header-icon svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  stroke: currentColor;
+  fill: none;
+}
+
+.form-card--entrada .form-card-header-icon {
+  background: rgba(76, 175, 80, 0.2);
+  color: #2e7d32;
+}
+
+.form-card--salida .form-card-header-icon {
+  background: rgba(255, 152, 0, 0.2);
+  color: #e65100;
+}
+
+.form-card-header .form-card-title {
+  margin: 0;
+  padding-bottom: 0;
+  border: none;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.25rem;
+}
+
+@media (max-width: 600px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-grid .form-group--full {
+  grid-column: 1 / -1;
+}
+
+.form-nuevo-catalogo {
+  margin-top: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border-left: 3px solid var(--accent-blue);
+  background: rgba(33, 150, 243, 0.06);
+  border-radius: 0 8px 8px 0;
+  width: 100%;
+  transition: opacity 0.2s, max-height 0.2s;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.form-actions .btn-primary {
+  order: 1;
+}
+
+.form-actions .btn-secondary {
+  order: 2;
+}
+
+.lineas-table .stock-ok {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.lineas-table tbody tr.linea:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.form-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.form-card-sub {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0 0 1rem 0;
 }
 
 .alert {

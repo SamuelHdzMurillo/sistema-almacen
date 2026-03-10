@@ -32,8 +32,8 @@ requerirLogin();
       <h2 class="form-card-title">Nueva transacción</h2>
       <p class="card-sub">Elija el tipo de movimiento:</p>
       <div class="choice-btns">
-        <a href="nueva-entrada.php" class="btn btn-primary">↓ Entrada al almacén</a>
-        <a href="nueva-salida.php" class="btn btn-secondary">↑ Salida del almacén</a>
+        <a href="nueva-entrada.php" class="btn btn-primary"><span class="btn-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg></span>Entrada al almacén</a>
+        <a href="nueva-salida.php" class="btn btn-secondary"><span class="btn-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></span>Salida del almacén</a>
       </div>
     </div>
   </div>

@@ -93,7 +93,7 @@ $accionesMostradas = [];
               <td><?= htmlspecialchars($t['referencia']) ?></td>
               <td>
                 <span class="type-badge <?= $t['tipo'] ?>">
-                  <?= $t['tipo'] === 'in' ? '↓ Stock In' : '↑ Stock Out' ?>
+                  <?php if ($t['tipo'] === 'in'): ?><span class="type-badge-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg></span>Stock In<?php else: ?><span class="type-badge-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></span>Stock Out<?php endif; ?>
                 </span>
               </td>
               <td><?= htmlspecialchars($t['item_nombre']) ?></td>

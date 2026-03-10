@@ -55,7 +55,7 @@ $quienRecibeEntrada = listarQuienRecibeEntrada();
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nueva entrada - Sistema de Almacén</title>
   <link rel="icon" type="image/webp" href="assets/css/img/logo_cecyte_grande.webp">
-  <link rel="stylesheet" href="assets/css/style.css?v=2">
+  <link rel="stylesheet" href="assets/css/style.css?v=4">
 </head>
 <body>
   <div class="container">
@@ -79,68 +79,85 @@ $quienRecibeEntrada = listarQuienRecibeEntrada();
     </nav>
 
     <h1 class="page-title">Nueva entrada al almacén</h1>
-    <p class="card-sub">Al guardar se generará el recibo de entrada con los datos indicados.</p>
+    <p class="form-card-sub">Al guardar se generará el recibo de entrada con los datos indicados.</p>
     <?php if ($error): ?><div class="alert alert-error"><?= htmlspecialchars($error) ?></div><?php endif; ?>
 
-    <form method="post" action="nueva-entrada.php" onsubmit="return confirm('¿Está seguro de que desea continuar y registrar la entrada?');">
-      <div class="form-card">
-        <div class="form-group">
-          <label>Fecha</label>
-          <input type="date" name="fecha" value="<?= htmlspecialchars($_POST['fecha'] ?? date('Y-m-d')) ?>" required>
+    <form method="post" action="nueva-entrada.php" id="formEntrada" onsubmit="return confirm('¿Está seguro de que desea continuar y registrar la entrada?');">
+      <div class="form-layout-dual">
+      <div class="form-card form-card--entrada form-card--datos">
+        <div class="form-card-header">
+          <span class="form-card-header-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg></span>
+          <h3 class="form-card-title">Datos del documento</h3>
         </div>
-        <div class="form-group">
-          <label>Proveedor</label>
-          <select name="proveedor_id" id="proveedor_id">
-            <option value="">-- Seleccione del catálogo --</option>
-            <?php foreach ($proveedores as $prov): ?>
-              <option value="<?= (int)$prov['id'] ?>" <?= (isset($_POST['proveedor_id']) && (int)$_POST['proveedor_id'] === (int)$prov['id']) ? 'selected' : '' ?>><?= htmlspecialchars($prov['nombre']) ?></option>
-            <?php endforeach; ?>
-            <option value="nuevo">+ Agregar nuevo al catálogo</option>
-          </select>
-          <input type="text" name="proveedor_nuevo" id="proveedor_nuevo" value="<?= htmlspecialchars($_POST['proveedor_nuevo'] ?? '') ?>" placeholder="Nombre del proveedor (si agregó nuevo)" class="form-nuevo-catalogo" style="display:none; margin-top:6px;">
-        </div>
-        <div class="form-group">
-          <label>Quien recibe (en almacén)</label>
-          <select name="quien_recibe_id" id="quien_recibe_id">
-            <option value="">-- Seleccione del catálogo --</option>
-            <?php foreach ($quienRecibeEntrada as $qr): ?>
-              <option value="<?= (int)$qr['id'] ?>" <?= (isset($_POST['quien_recibe_id']) && (int)$_POST['quien_recibe_id'] === (int)$qr['id']) ? 'selected' : '' ?>><?= htmlspecialchars($qr['nombre']) ?></option>
-            <?php endforeach; ?>
-            <option value="nuevo">+ Agregar nuevo al catálogo</option>
-          </select>
-          <input type="text" name="quien_recibe_nuevo" id="quien_recibe_nuevo" value="<?= htmlspecialchars($_POST['quien_recibe_nuevo'] ?? '') ?>" placeholder="Nombre (si agregó nuevo)" class="form-nuevo-catalogo" style="display:none; margin-top:6px;">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="fecha_entrada">Fecha</label>
+            <input type="date" name="fecha" id="fecha_entrada" value="<?= htmlspecialchars($_POST['fecha'] ?? date('Y-m-d')) ?>" required>
+          </div>
+          <div class="form-group form-group--full">
+            <label for="proveedor_id">Proveedor</label>
+            <select name="proveedor_id" id="proveedor_id" aria-describedby="proveedor_hint">
+              <option value="">— Seleccione del catálogo —</option>
+              <?php foreach ($proveedores as $prov): ?>
+                <option value="<?= (int)$prov['id'] ?>" <?= (isset($_POST['proveedor_id']) && (int)$_POST['proveedor_id'] === (int)$prov['id']) ? 'selected' : '' ?>><?= htmlspecialchars($prov['nombre']) ?></option>
+              <?php endforeach; ?>
+              <option value="nuevo">+ Agregar nuevo al catálogo</option>
+            </select>
+            <input type="text" name="proveedor_nuevo" id="proveedor_nuevo" value="<?= htmlspecialchars($_POST['proveedor_nuevo'] ?? '') ?>" placeholder="Nombre del proveedor" class="form-nuevo-catalogo" style="display:none;" aria-label="Nombre del nuevo proveedor">
+            <span id="proveedor_hint" class="form-hint">Puede elegir un proveedor existente o agregar uno nuevo.</span>
+          </div>
+          <div class="form-group form-group--full">
+            <label for="quien_recibe_id">Quien recibe (en almacén)</label>
+            <select name="quien_recibe_id" id="quien_recibe_id" aria-describedby="quien_recibe_hint">
+              <option value="">— Seleccione del catálogo —</option>
+              <?php foreach ($quienRecibeEntrada as $qr): ?>
+                <option value="<?= (int)$qr['id'] ?>" <?= (isset($_POST['quien_recibe_id']) && (int)$_POST['quien_recibe_id'] === (int)$qr['id']) ? 'selected' : '' ?>><?= htmlspecialchars($qr['nombre']) ?></option>
+              <?php endforeach; ?>
+              <option value="nuevo">+ Agregar nuevo al catálogo</option>
+            </select>
+            <input type="text" name="quien_recibe_nuevo" id="quien_recibe_nuevo" value="<?= htmlspecialchars($_POST['quien_recibe_nuevo'] ?? '') ?>" placeholder="Nombre de quien recibe" class="form-nuevo-catalogo" style="display:none;" aria-label="Nombre de quien recibe (nuevo)">
+            <span id="quien_recibe_hint" class="form-hint">Persona que recibe el material en almacén.</span>
+          </div>
         </div>
       </div>
 
-      <div class="form-card">
-        <h3 class="form-card-title">Detalle de productos</h3>
-        <table class="lineas-table">
-          <thead>
-            <tr>
-              <th>Producto</th>
-              <th class="col-qty">Cantidad</th>
-              <th class="col-del"></th>
-            </tr>
-          </thead>
-          <tbody id="lineas">
-            <tr class="linea">
-              <td>
-                <select name="producto_id[]" required>
-                  <option value="">-- Seleccione --</option>
-                  <?php foreach ($productos as $p): ?>
-                    <option value="<?= (int)$p['id'] ?>"><?= htmlspecialchars($p['nombre']) ?> (<?= htmlspecialchars($p['unidad'] ?? 'und') ?>)</option>
-                  <?php endforeach; ?>
-                </select>
-              </td>
-              <td><input type="number" name="cantidad[]" min="1" value="1" required></td>
-              <td></td>
-            </tr>
-          </tbody>
-        </table>
-        <button type="button" class="btn btn-secondary btn-add-line" id="addLine">+ Añadir línea</button>
+      <div class="form-card form-card--wide form-card--entrada form-card--detalle">
+        <div class="form-card-header">
+          <span class="form-card-header-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span>
+          <h3 class="form-card-title">Detalle de productos</h3>
+        </div>
+        <p class="form-card-sub">Indique los productos que ingresan y la cantidad de cada uno.</p>
+        <div class="table-wrap">
+          <table class="lineas-table">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th class="col-qty">Cantidad</th>
+                <th class="col-del"></th>
+              </tr>
+            </thead>
+            <tbody id="lineas">
+              <tr class="linea">
+                <td>
+                  <select name="producto_id[]" required aria-label="Producto">
+                    <option value="">— Seleccione producto —</option>
+                    <?php foreach ($productos as $p): ?>
+                      <option value="<?= (int)$p['id'] ?>"><?= htmlspecialchars($p['nombre']) ?> (<?= htmlspecialchars($p['unidad'] ?? 'und') ?>)</option>
+                    <?php endforeach; ?>
+                  </select>
+                </td>
+                <td><input type="number" name="cantidad[]" min="1" value="1" required aria-label="Cantidad"></td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary btn-add-line" id="addLine">+ Añadir línea</button>
+          <button type="submit" class="btn btn-primary">Registrar entrada y generar recibo</button>
+        </div>
       </div>
-
-      <button type="submit" class="btn btn-primary">Registrar entrada y generar recibo</button>
+      </div>
     </form>
   </div>
 
@@ -154,7 +171,7 @@ $quienRecibeEntrada = listarQuienRecibeEntrada();
         else if (el.tagName === 'SELECT') el.selectedIndex = 0;
       });
       const lastTd = clone.querySelector('td:last-child');
-      lastTd.innerHTML = '<button type="button" class="btn btn-secondary btn-sm" onclick="this.closest(\'tr\').remove()">✕</button>';
+      lastTd.innerHTML = '<button type="button" class="btn btn-secondary btn-sm btn-icon-only" onclick="this.closest(\'tr\').remove()" title="Quitar línea" aria-label="Quitar línea"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
       tbody.appendChild(clone);
     });
     function toggleNuevo(selId, inputId) {
