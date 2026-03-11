@@ -33,13 +33,12 @@ $accionesMostradas = [];
 
     <?php include __DIR__ . '/includes/nav.php'; ?>
 
-    <nav class="nav-links nav-links-sub" style="margin-top:-0.5rem; margin-bottom:1rem;">
-      <a href="transacciones.php" class="active">Listado de transacciones</a>
-      <a href="entregas-plantel-persona.php">Entregas por plantel y persona</a>
-    </nav>
-
     <section class="section-header">
       <h2>Transacciones recientes</h2>
+      <nav class="nav-links nav-links-sub nav-links-below-title" aria-label="Subnavegación transacciones">
+        <a href="transacciones.php" class="nav-link active">Listado de transacciones</a>
+        <a href="entregas-plantel-persona.php" class="nav-link">Entregas por plantel y persona</a>
+      </nav>
       <?php if ($mensajeCancelado): ?>
         <div class="alert alert-success" style="margin-bottom:1rem;">Transacción cancelada. El stock se ha actualizado.</div>
       <?php endif; ?>

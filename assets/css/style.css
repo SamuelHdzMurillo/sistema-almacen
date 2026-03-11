@@ -558,11 +558,23 @@ tr:hover td {
   pointer-events: none;
 }
 
-/* Subnavegación (ej. Transacciones / Entregas por plantel) */
+/* Subnavegación (ej. Transacciones / Entregas por plantel) — mismo estilo blanco que nav principal */
 .nav-links-sub {
-  padding: 0.4rem 0.5rem;
-  background: var(--bg-secondary);
-  border-color: #e8e8e8;
+  padding: 0.5rem;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+/* Subnav debajo del título de sección — fondo blanco como nav principal */
+.nav-links-below-title {
+  margin-top: 0.75rem;
+  margin-bottom: 1rem;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
 }
 
 .nav-links-sub .nav-link.active,

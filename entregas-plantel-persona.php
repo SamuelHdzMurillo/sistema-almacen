@@ -43,13 +43,12 @@ $entregas = listarEntregasPorPlantelYReceptor(
 
     <?php include __DIR__ . '/includes/nav.php'; ?>
 
-    <nav class="nav-links nav-links-sub" style="margin-top:-0.5rem; margin-bottom:1rem;">
-      <a href="transacciones.php">Listado de transacciones</a>
-      <a href="entregas-plantel-persona.php" class="active">Entregas por plantel y persona</a>
-    </nav>
-
     <section class="section-header">
       <h2>Qué se ha entregado a cada plantel y persona</h2>
+      <nav class="nav-links nav-links-sub nav-links-below-title" aria-label="Subnavegación transacciones">
+        <a href="transacciones.php" class="nav-link">Listado de transacciones</a>
+        <a href="entregas-plantel-persona.php" class="nav-link active">Entregas por plantel y persona</a>
+      </nav>
       <p class="section-desc">Filtra por plantel y/o por persona que recibe para ver el detalle de entregas.</p>
       <div class="search-filter" style="flex-wrap: wrap; gap: 0.75rem;">
         <form method="get" action="entregas-plantel-persona.php" style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
