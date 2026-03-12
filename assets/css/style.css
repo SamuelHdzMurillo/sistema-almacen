@@ -697,7 +697,9 @@ tr:hover td {
 
 .lineas-table {
   width: 100%;
+  min-width: 0;
   margin-top: 0.5rem;
+  table-layout: auto;
 }
 .lineas-table th {
   font-size: 0.75rem;
@@ -706,11 +708,26 @@ tr:hover td {
 .lineas-table select {
   padding: 0.4rem;
   font-size: 0.9rem;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+/* Producto: columna más corta para dar espacio a En almacén y Cantidad */
+.lineas-table td:first-child,
+.lineas-table th:first-child {
+  min-width: 6rem;
+  max-width: 12rem;
+}
+.lineas-table td:first-child select,
+.lineas-table th:first-child select {
+  min-width: 5rem;
+  width: 100%;
 }
 .lineas-table .col-stock {
-  width: 140px;
-  min-width: 120px;
+  min-width: 7rem;
+  width: 1%;
   vertical-align: top;
+  text-align: left;
+  white-space: nowrap;
 }
 .lineas-table .col-stock .stock-display {
   display: block;
@@ -727,10 +744,21 @@ tr:hover td {
   font-weight: 600;
 }
 .lineas-table .col-qty {
-  width: 100px;
+  min-width: 7rem;
+  width: 1%;
+  text-align: left;
+}
+.lineas-table .col-qty input {
+  width: 4.5rem;
+  min-width: 3rem;
+  max-width: 100%;
 }
 .lineas-table .col-del {
-  width: 44px;
+  width: 1%;
+  min-width: 2.75rem;
+}
+.lineas-table .col-del .btn {
+  min-width: 2rem;
 }
 
 .btn-add-line {
@@ -746,7 +774,7 @@ tr:hover td {
 /* Layout dos columnas: datos del documento | detalle/artículos */
 .form-layout-dual {
   display: grid;
-  grid-template-columns: 340px 1fr;
+  grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
   gap: 1.5rem;
   align-items: start;
   margin-bottom: 1rem;
@@ -755,6 +783,12 @@ tr:hover td {
 @media (max-width: 900px) {
   .form-layout-dual {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-layout-dual {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -775,6 +809,11 @@ tr:hover td {
 
 .form-layout-dual .form-card--detalle .table-wrap {
   margin-bottom: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.form-layout-dual .form-card--detalle .table-wrap .lineas-table {
+  min-width: 28rem;
 }
 
 .form-layout-dual .form-card--datos .form-grid {
