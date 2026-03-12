@@ -157,8 +157,8 @@ $receptores = listarReceptores();
             <thead>
               <tr>
                 <th>Producto</th>
-                <th class="col-stock">En almacén</th>
-                <th class="col-qty">Cantidad</th>
+                <th class="col-stock">En almacén (actual)</th>
+                <th class="col-qty">Cantidad a entregar</th>
                 <th class="col-del"></th>
               </tr>
             </thead>
@@ -173,7 +173,7 @@ $receptores = listarReceptores();
                   </select>
                 </td>
                 <td class="col-stock"><span class="stock-display" aria-live="polite">—</span><span class="stock-warning-msg" role="alert"></span></td>
-                <td><input type="number" name="cantidad[]" min="1" value="1" required aria-label="Cantidad"></td>
+                <td><input type="number" name="cantidad[]" min="1" value="1" required aria-label="Cantidad a entregar"></td>
                 <td></td>
               </tr>
             </tbody>

@@ -3,6 +3,7 @@ require_once __DIR__ . '/includes/auth.php';
 requerirLogin();
 require_once __DIR__ . '/includes/entradas.php';
 require_once __DIR__ . '/includes/productos.php';
+require_once __DIR__ . '/includes/inventario.php';
 require_once __DIR__ . '/includes/catalogos_entrada.php';
 
 $mensaje = '';
@@ -45,6 +46,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $productos = listarProductos();
+$inventario = inventarioPorProducto();
+$stockPorId = [];
+foreach ($inventario as $inv) {
+    $stockPorId[(int)$inv['id']] = (int)($inv['stock'] ?? 0);
+}
+$stockInfo = [];
+foreach ($productos as $p) {
+    $id = (int)$p['id'];
+    $stockInfo[$id] = ['stock' => $stockPorId[$id] ?? 0, 'unidad' => $p['unidad'] ?? 'und'];
+}
 $proveedores = listarProveedores();
 $quienRecibeEntrada = listarQuienRecibeEntrada();
 ?>
@@ -123,13 +134,14 @@ $quienRecibeEntrada = listarQuienRecibeEntrada();
           <span class="form-card-header-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span>
           <h3 class="form-card-title">Detalle de productos</h3>
         </div>
-        <p class="form-card-sub">Indique los productos que ingresan y la cantidad de cada uno.</p>
+        <p class="form-card-sub">Indique los productos que ingresan y la cantidad de cada uno. Se muestra el stock actual en almacén.</p>
         <div class="table-wrap">
           <table class="lineas-table">
             <thead>
               <tr>
                 <th>Producto</th>
-                <th class="col-qty">Cantidad</th>
+                <th class="col-stock">En almacén</th>
+                <th class="col-qty">Cantidad que entra</th>
                 <th class="col-del"></th>
               </tr>
             </thead>
@@ -143,7 +155,8 @@ $quienRecibeEntrada = listarQuienRecibeEntrada();
                     <?php endforeach; ?>
                   </select>
                 </td>
-                <td><input type="number" name="cantidad[]" min="1" value="1" required aria-label="Cantidad"></td>
+                <td class="col-stock"><span class="stock-display" aria-live="polite">—</span></td>
+                <td><input type="number" name="cantidad[]" min="1" value="1" required aria-label="Cantidad que entra"></td>
                 <td></td>
               </tr>
             </tbody>
@@ -159,6 +172,27 @@ $quienRecibeEntrada = listarQuienRecibeEntrada();
   </div>
 
   <script>
+    var stockPorProducto = <?= json_encode($stockInfo) ?>;
+
+    function actualizarStockEnFilaEntrada(fila) {
+      var sel = fila.querySelector('select[name="producto_id[]"]');
+      var span = fila.querySelector('.stock-display');
+      if (!sel || !span) return;
+      var id = sel.value;
+      if (!id) { span.textContent = '—'; return; }
+      var info = stockPorProducto[id];
+      if (!info) { span.textContent = '—'; return; }
+      var u = info.unidad || 'und';
+      var stock = info.stock || 0;
+      span.textContent = stock + ' ' + u;
+    }
+
+    document.getElementById('lineas').addEventListener('change', function(e) {
+      if (e.target && e.target.matches('select[name="producto_id[]"]')) {
+        actualizarStockEnFilaEntrada(e.target.closest('tr'));
+      }
+    });
+
     document.getElementById('addLine').addEventListener('click', function() {
       const tbody = document.getElementById('lineas');
       const first = tbody.querySelector('tr.linea');
@@ -167,10 +201,13 @@ $quienRecibeEntrada = listarQuienRecibeEntrada();
         if (el.name && el.name.includes('cantidad')) el.value = 1;
         else if (el.tagName === 'SELECT') el.selectedIndex = 0;
       });
+      var stockSpan = clone.querySelector('.stock-display');
+      if (stockSpan) stockSpan.textContent = '—';
       const lastTd = clone.querySelector('td:last-child');
       lastTd.innerHTML = '<button type="button" class="btn btn-secondary btn-sm btn-icon-only" onclick="this.closest(\'tr\').remove()" title="Quitar línea" aria-label="Quitar línea"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
       tbody.appendChild(clone);
     });
+    document.querySelectorAll('#lineas tr.linea').forEach(actualizarStockEnFilaEntrada);
     function toggleNuevo(selId, inputId) {
       var sel = document.getElementById(selId);
       var input = document.getElementById(inputId);
