@@ -137,6 +137,7 @@ BEGIN
     JSON_OBJECT(
       'id', NEW.id,
       'referencia', NEW.referencia,
+      'factura', NEW.factura,
       'fecha', NEW.fecha,
       'proveedor_id', NEW.proveedor_id,
       'quien_recibe_id', NEW.quien_recibe_id,
@@ -162,6 +163,7 @@ BEGIN
     JSON_OBJECT(
       'id', OLD.id,
       'referencia', OLD.referencia,
+      'factura', OLD.factura,
       'fecha', OLD.fecha,
       'proveedor_id', OLD.proveedor_id,
       'quien_recibe_id', OLD.quien_recibe_id,
@@ -173,6 +175,7 @@ BEGIN
     JSON_OBJECT(
       'id', NEW.id,
       'referencia', NEW.referencia,
+      'factura', NEW.factura,
       'fecha', NEW.fecha,
       'proveedor_id', NEW.proveedor_id,
       'quien_recibe_id', NEW.quien_recibe_id,
@@ -198,6 +201,7 @@ BEGIN
     JSON_OBJECT(
       'id', OLD.id,
       'referencia', OLD.referencia,
+      'factura', OLD.factura,
       'fecha', OLD.fecha,
       'proveedor_id', OLD.proveedor_id,
       'quien_recibe_id', OLD.quien_recibe_id,

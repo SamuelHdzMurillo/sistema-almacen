@@ -52,6 +52,7 @@ INSERT IGNORE INTO catalogo_quien_recibe_entrada (nombre) VALUES ('No indicado')
 CREATE TABLE IF NOT EXISTS entradas (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   referencia VARCHAR(50) NOT NULL UNIQUE,
+  factura VARCHAR(50) NULL COMMENT 'Folio de la factura / orden (proveedor)',
   fecha DATE NOT NULL,
   proveedor_id INT UNSIGNED NOT NULL,
   quien_recibe_id INT UNSIGNED NOT NULL,

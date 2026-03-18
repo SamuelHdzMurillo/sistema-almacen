@@ -94,6 +94,7 @@ $errorLinea = isset($_GET['error_linea']) && $_GET['error_linea'] === '1';
     <div class="form-card">
       <?php if ($tipo === 'in'): ?>
         <p><strong>Fecha:</strong> <?= htmlspecialchars($transaccion['fecha']) ?></p>
+    <p><strong>Factura:</strong> <?= htmlspecialchars($transaccion['factura'] ?? '—') ?></p>
         <p><strong>Proveedor:</strong> <?= htmlspecialchars($transaccion['proveedor_nombre'] ?? '—') ?></p>
         <p><strong>Quien recibe:</strong> <?= htmlspecialchars($transaccion['quien_recibe_nombre'] ?? '—') ?></p>
       <?php else: ?>

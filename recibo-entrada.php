@@ -55,6 +55,10 @@ $totalUnidades = array_sum(array_column($detalleActivo, 'cantidad'));
           <span class="recibo-dato-valor"><?= htmlspecialchars($entrada['fecha']) ?></span>
         </div>
         <div class="recibo-dato">
+          <span class="recibo-dato-label">Factura / Orden</span>
+          <span class="recibo-dato-valor"><?= htmlspecialchars($entrada['factura'] ?? '—') ?></span>
+        </div>
+        <div class="recibo-dato">
           <span class="recibo-dato-label">Proveedor</span>
           <span class="recibo-dato-valor"><?= htmlspecialchars($entrada['proveedor_nombre'] ?? '—') ?></span>
         </div>
@@ -142,6 +146,7 @@ $totalUnidades = array_sum(array_column($detalleActivo, 'cantidad'));
       <p>Se ha registrado la entrada <strong><?= htmlspecialchars($entrada['referencia']) ?></strong>. Abra el recibo para imprimirlo; quien recibe firmará a mano en el espacio indicado.</p>
       <div class="recibo-recibido-preview">
         <span><strong>Folio:</strong> <?= htmlspecialchars($entrada['referencia']) ?></span>
+        <span><strong>Factura:</strong> <?= htmlspecialchars($entrada['factura'] ?? '—') ?></span>
         <span><strong>Proveedor:</strong> <?= htmlspecialchars($entrada['proveedor_nombre'] ?? '—') ?></span>
         <span><strong>Quien recibe:</strong> <?= htmlspecialchars($entrada['quien_recibe_nombre'] ?? '—') ?></span>
         <span><strong>Fecha:</strong> <?= htmlspecialchars($entrada['fecha']) ?></span>

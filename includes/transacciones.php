@@ -8,7 +8,7 @@ function listarTransaccionesRecientes(int $limite = 20, ?string $tipo = null, ?s
 
     if ($tipo !== 'out') {
         $sql = "
-            SELECT e.id, e.referencia, e.fecha, prov.nombre AS persona, e.estado,
+            SELECT e.id, e.referencia, e.factura, e.fecha, prov.nombre AS persona, e.estado,
                    'in' AS tipo, de.cantidad, p.nombre AS item_nombre,
                    e.created_at, e.created_by, u.nombre AS created_by_nombre
             FROM entradas e
@@ -20,9 +20,9 @@ function listarTransaccionesRecientes(int $limite = 20, ?string $tipo = null, ?s
         ";
         $params = [];
         if ($busqueda) {
-            $sql .= " AND (e.referencia LIKE ? OR p.nombre LIKE ? OR prov.nombre LIKE ?)";
+            $sql .= " AND (e.referencia LIKE ? OR e.factura LIKE ? OR p.nombre LIKE ? OR prov.nombre LIKE ?)";
             $q = "%{$busqueda}%";
-            $params = array_merge($params, [$q, $q, $q]);
+            $params = array_merge($params, [$q, $q, $q, $q]);
         }
         $sql .= " ORDER BY e.created_at DESC, de.id DESC LIMIT " . (int)$limite;
         $stmt = $pdo->prepare($sql);

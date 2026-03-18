@@ -11,6 +11,8 @@ $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $fecha = $_POST['fecha'] ?? date('Y-m-d');
+    $factura = trim((string)($_POST['factura'] ?? ''));
+    if ($factura === '') $factura = null;
     $proveedorNuevo = trim($_POST['proveedor_nuevo'] ?? '');
     $quienRecibeNuevo = trim($_POST['quien_recibe_nuevo'] ?? '');
     $proveedorId = !empty($proveedorNuevo) ? null : (int)($_POST['proveedor_id'] ?? 0);
@@ -94,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 unset($l);
 
-                $entradaId = crearEntrada($fecha, $proveedorId, $quienRecibeId, $lineas, $usuarioId);
+                $entradaId = crearEntrada($fecha, $proveedorId, $quienRecibeId, $lineas, $factura, $usuarioId);
                 header('Location: recibo-entrada.php?id=' . $entradaId);
                 exit;
             } catch (Exception $e) {
@@ -162,6 +164,10 @@ $quienRecibeEntrada = listarQuienRecibeEntrada();
           <div class="form-group">
             <label for="fecha_entrada">Fecha</label>
             <input type="date" name="fecha" id="fecha_entrada" value="<?= htmlspecialchars($_POST['fecha'] ?? date('Y-m-d')) ?>" required>
+          </div>
+          <div class="form-group">
+            <label for="factura">Factura / Orden</label>
+            <input type="text" name="factura" id="factura" value="<?= htmlspecialchars($_POST['factura'] ?? '') ?>" placeholder="Ej. F-1234 (opcional)" maxlength="50">
           </div>
           <div class="form-group form-group--full">
             <label for="proveedor_id">Proveedor</label>
