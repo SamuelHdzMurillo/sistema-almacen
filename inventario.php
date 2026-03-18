@@ -27,7 +27,7 @@ $vista = isset($_GET['vista']) && $_GET['vista'] === 'mes' ? 'mes' : 'actual';
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Inventario — <?= htmlspecialchars($periodoTexto) ?> - Sistema de Almacén</title>
   <link rel="icon" type="image/webp" href="assets/css/img/logo_cecyte_grande.webp">
-  <link rel="stylesheet" href="assets/css/style.css?v=7">
+  <link rel="stylesheet" href="assets/css/style.css?v=8">
 </head>
 <body class="pagina-inventario">
   <div class="container">
@@ -45,30 +45,32 @@ $vista = isset($_GET['vista']) && $_GET['vista'] === 'mes' ? 'mes' : 'actual';
     <?php include __DIR__ . '/includes/nav.php'; ?>
 
     <main class="inventario-main">
-      <!-- Cabecera: título + período + acción principal -->
+      <!-- Cabecera: título + período + acción + pestañas -->
       <header class="inventario-page-header">
-        <div class="inventario-page-header-texto">
-          <h1 class="inventario-page-titulo">Inventario</h1>
-          <p class="inventario-page-subtitulo"><?= $vista === 'actual' ? 'Stock en existencia por producto' : 'Resumen por mes · ' . htmlspecialchars($periodoTexto) ?></p>
+        <div class="inventario-page-header-top">
+          <div class="inventario-page-header-texto">
+            <h1 class="inventario-page-titulo">Inventario</h1>
+            <p class="inventario-page-subtitulo"><?= $vista === 'actual' ? 'Stock en existencia por producto' : 'Resumen por mes · ' . htmlspecialchars($periodoTexto) ?></p>
+          </div>
+          <div class="inventario-page-header-accion">
+            <?php if ($vista === 'actual'): ?>
+            <a href="imprimir-inventario-actual.php?hoja=1" target="_blank" rel="noopener" class="btn btn-primary btn-imprimir-recibo">
+              Imprimir inventario actual
+            </a>
+            <?php elseif ($vista === 'mes'): ?>
+            <a href="recibo-mes.php?anio=<?= $anio ?>&mes=<?= $mes ?>&hoja=1" target="_blank" rel="noopener" class="btn btn-primary btn-imprimir-recibo">
+              Imprimir recibo del mes
+            </a>
+            <?php endif; ?>
+          </div>
         </div>
-        <div class="inventario-page-header-accion">
-          <?php if ($vista === 'actual'): ?>
-          <a href="imprimir-inventario-actual.php?hoja=1" target="_blank" rel="noopener" class="btn btn-primary btn-imprimir-recibo">
-            Imprimir inventario actual
-          </a>
-          <?php elseif ($vista === 'mes'): ?>
-          <a href="recibo-mes.php?anio=<?= $anio ?>&mes=<?= $mes ?>&hoja=1" target="_blank" rel="noopener" class="btn btn-primary btn-imprimir-recibo">
-            Imprimir recibo del mes
-          </a>
-          <?php endif; ?>
-        </div>
-      </header>
 
-      <!-- Pestañas -->
-      <nav class="inventario-tabs" role="tablist">
-        <a href="inventario.php?vista=actual" class="inventario-tab <?= $vista === 'actual' ? 'active' : '' ?>" role="tab">Inventario actual</a>
-        <a href="inventario.php?vista=mes&amp;anio=<?= $anio ?>&amp;mes=<?= $mes ?>" class="inventario-tab <?= $vista === 'mes' ? 'active' : '' ?>" role="tab">Inventario por mes</a>
-      </nav>
+        <!-- Pestañas (botones) dentro del header -->
+        <nav class="inventario-tabs" role="tablist" aria-label="Pestañas inventario">
+          <a href="inventario.php?vista=actual" class="inventario-tab <?= $vista === 'actual' ? 'active' : '' ?>" role="tab">Inventario actual</a>
+          <a href="inventario.php?vista=mes&amp;anio=<?= $anio ?>&amp;mes=<?= $mes ?>" class="inventario-tab <?= $vista === 'mes' ? 'active' : '' ?>" role="tab">Inventario por mes</a>
+        </nav>
+      </header>
 
       <!-- Contenido pestaña: Inventario actual -->
       <div class="inventario-pestana-content <?= $vista === 'actual' ? 'activa' : '' ?>" id="pestana-actual" role="tabpanel">

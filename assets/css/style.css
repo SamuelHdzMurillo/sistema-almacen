@@ -1803,15 +1803,22 @@ body.recibo-hoja {
 /* Cabecera de página: título + período + imprimir */
 .inventario-page-header {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 0.75rem;
   padding: 1.25rem 1.5rem;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
+}
+.inventario-page-header-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 .inventario-page-header-texto {
   min-width: 0;
@@ -1841,7 +1848,7 @@ body.recibo-hoja {
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem;
-  margin: 0 0 1.25rem;
+  margin: 0;
   padding: 0.5rem;
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -2505,8 +2512,12 @@ body.login-page {
   margin-bottom: 0.6rem;
 }
 
+.pagina-inventario .inventario-page-header-top {
+  display: flex;
+}
+
 .pagina-inventario .inventario-tabs {
-  margin: 0 0 0.75rem;
+  margin: 0;
   padding: 0.25rem;
 }
 
