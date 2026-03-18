@@ -15,37 +15,98 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $quienRecibeNuevo = trim($_POST['quien_recibe_nuevo'] ?? '');
     $proveedorId = !empty($proveedorNuevo) ? null : (int)($_POST['proveedor_id'] ?? 0);
     $quienRecibeId = !empty($quienRecibeNuevo) ? null : (int)($_POST['quien_recibe_id'] ?? 0);
+    $usuarioId = isset($_SESSION['usuario_id']) ? (int)$_SESSION['usuario_id'] : null;
     if (!empty($proveedorNuevo)) $proveedorId = obtenerOcrearProveedor($proveedorNuevo);
     if (!empty($quienRecibeNuevo)) $quienRecibeId = obtenerOcrearQuienRecibeEntrada($quienRecibeNuevo);
     $lineas = [];
+    $huboErrorAltaRapidaProducto = false;
     if (!empty($_POST['producto_id']) && is_array($_POST['producto_id'])) {
         foreach ($_POST['producto_id'] as $i => $pid) {
-            if (empty($pid)) continue;
-            $lineas[] = [
-                'producto_id' => $pid,
-                'cantidad' => (int)($_POST['cantidad'][$i] ?? 0),
-            ];
+            $cantidad = (int)($_POST['cantidad'][$i] ?? 0);
+            if ($cantidad <= 0) continue;
+
+            $pid = is_string($pid) ? trim($pid) : $pid;
+            if ($pid === 'nuevo') {
+                $nombreNuevo = trim($_POST['producto_nuevo_nombre'][$i] ?? '');
+                $codigoNuevo = trim($_POST['producto_nuevo_codigo'][$i] ?? '') ?: null;
+                $descripcionNuevo = trim($_POST['producto_nuevo_descripcion'][$i] ?? '');
+                $unidadSeleccionada = trim($_POST['producto_nuevo_unidad'][$i] ?? '');
+                $unidadNueva = trim($_POST['producto_nuevo_unidad_nueva'][$i] ?? '');
+
+                if ($nombreNuevo === '') {
+                    $error = 'Indique el nombre del producto para la alta rápida (línea ' . ((int)$i + 1) . ').';
+                    $huboErrorAltaRapidaProducto = true;
+                    break;
+                }
+                if ($unidadSeleccionada === '') {
+                    $error = 'Seleccione la unidad para la alta rápida (línea ' . ((int)$i + 1) . ').';
+                    $huboErrorAltaRapidaProducto = true;
+                    break;
+                }
+                if ($unidadSeleccionada === 'otra') {
+                    if ($unidadNueva === '') {
+                        $error = 'Indique la unidad nueva para la alta rápida (línea ' . ((int)$i + 1) . ').';
+                        $huboErrorAltaRapidaProducto = true;
+                        break;
+                    }
+                    $unidadSeleccionada = substr($unidadNueva, 0, 20);
+                }
+
+                $lineas[] = [
+                    'producto_id' => 'nuevo',
+                    'cantidad' => $cantidad,
+                    'nuevo' => [
+                        'codigo' => $codigoNuevo,
+                        'nombre' => $nombreNuevo,
+                        'descripcion' => $descripcionNuevo !== '' ? $descripcionNuevo : null,
+                        'unidad' => $unidadSeleccionada,
+                    ],
+                ];
+            } else {
+                if (empty($pid)) continue;
+                $lineas[] = [
+                    'producto_id' => (int)$pid,
+                    'cantidad' => $cantidad,
+                ];
+            }
         }
     }
-    if ($proveedorId <= 0) {
-        $error = 'Seleccione o indique el proveedor.';
-    } elseif ($quienRecibeId <= 0) {
-        $error = 'Seleccione o indique quién recibe en almacén.';
-    } elseif (empty($lineas)) {
-        $error = 'Añada al menos un producto con cantidad.';
-    } else {
-        try {
-            $usuarioId = isset($_SESSION['usuario_id']) ? (int)$_SESSION['usuario_id'] : null;
-            $entradaId = crearEntrada($fecha, $proveedorId, $quienRecibeId, $lineas, $usuarioId);
-            header('Location: recibo-entrada.php?id=' . $entradaId);
-            exit;
-        } catch (Exception $e) {
-            $error = 'Error al guardar: ' . $e->getMessage();
+    if (!$huboErrorAltaRapidaProducto) {
+        if ($proveedorId <= 0) {
+            $error = 'Seleccione o indique el proveedor.';
+        } elseif ($quienRecibeId <= 0) {
+            $error = 'Seleccione o indique quién recibe en almacén.';
+        } elseif (empty($lineas)) {
+            $error = 'Añada al menos un producto con cantidad.';
+        } else {
+            try {
+                // Si hay líneas con alta rápida, creamos esos productos antes de registrar la entrada.
+                foreach ($lineas as &$l) {
+                    if (($l['producto_id'] ?? null) === 'nuevo' && !empty($l['nuevo'])) {
+                        // Si no se indicó código, generamos el siguiente disponible
+                        // para mantener el autoincremento por catálogo de productos.
+                        if (empty($l['nuevo']['codigo'])) {
+                            $l['nuevo']['codigo'] = obtenerSiguienteCodigoProducto();
+                        }
+                        $l['producto_id'] = crearProducto($l['nuevo'], $usuarioId);
+                        unset($l['nuevo']);
+                    }
+                }
+                unset($l);
+
+                $entradaId = crearEntrada($fecha, $proveedorId, $quienRecibeId, $lineas, $usuarioId);
+                header('Location: recibo-entrada.php?id=' . $entradaId);
+                exit;
+            } catch (Exception $e) {
+                $error = 'Error al guardar: ' . $e->getMessage();
+            }
         }
     }
 }
 
 $productos = listarProductos();
+$siguienteCodigo = obtenerSiguienteCodigoProducto();
+$unidadesDisponibles = listarUnidadesDisponibles();
 $inventario = inventarioPorProducto();
 $stockPorId = [];
 foreach ($inventario as $inv) {
@@ -150,10 +211,67 @@ $quienRecibeEntrada = listarQuienRecibeEntrada();
                 <td>
                   <select name="producto_id[]" required aria-label="Producto">
                     <option value="">— Seleccione producto —</option>
+                    <option value="nuevo">+ Alta rápida de producto</option>
                     <?php foreach ($productos as $p): ?>
                       <option value="<?= (int)$p['id'] ?>"><?= htmlspecialchars($p['nombre']) ?> (<?= htmlspecialchars($p['unidad'] ?? 'und') ?>)</option>
                     <?php endforeach; ?>
                   </select>
+                  <div class="form-nuevo-catalogo producto-nuevo-container">
+                    <div class="form-group">
+                      <label>Nombre del producto</label>
+                      <input
+                        type="text"
+                        name="producto_nuevo_nombre[]"
+                        class="producto-nuevo-nombre"
+                        placeholder="Nombre del producto"
+                        disabled
+                        required
+                      >
+                    </div>
+
+                    <div class="form-group">
+                      <label>Código</label>
+                      <input
+                        type="text"
+                        name="producto_nuevo_codigo[]"
+                        class="producto-nuevo-codigo"
+                        placeholder="<?= htmlspecialchars($siguienteCodigo) ?>"
+                        disabled
+                      >
+                    </div>
+
+                    <div class="form-group">
+                      <label>Descripción</label>
+                      <input
+                        type="text"
+                        name="producto_nuevo_descripcion[]"
+                        class="producto-nuevo-descripcion"
+                        placeholder="Descripción (opcional)"
+                        disabled
+                      >
+                    </div>
+
+                    <div class="form-group">
+                      <label>Unidad</label>
+                      <select name="producto_nuevo_unidad[]" class="producto-nuevo-unidad" disabled required>
+                        <option value="">— Unidad —</option>
+                        <?php foreach ($unidadesDisponibles as $u): ?>
+                          <option value="<?= htmlspecialchars($u) ?>"><?= htmlspecialchars($u) ?></option>
+                        <?php endforeach; ?>
+                        <option value="otra">Otra...</option>
+                      </select>
+                      <div class="wrap-unidad-nueva-producto">
+                        <input
+                          type="text"
+                          name="producto_nuevo_unidad_nueva[]"
+                          class="producto-nuevo-unidad-nueva"
+                          placeholder="Unidad nueva"
+                          maxlength="20"
+                          disabled
+                        >
+                      </div>
+                    </div>
+                  </div>
                 </td>
                 <td class="col-stock"><span class="stock-display" aria-live="polite">—</span></td>
                 <td><input type="number" name="cantidad[]" min="1" value="1" required aria-label="Cantidad que entra"></td>
@@ -173,6 +291,74 @@ $quienRecibeEntrada = listarQuienRecibeEntrada();
 
   <script>
     var stockPorProducto = <?= json_encode($stockInfo) ?>;
+    var siguienteCodigoInicial = <?= json_encode($siguienteCodigo) ?>;
+    var siguienteCodigoParaAsignar = siguienteCodigoInicial;
+
+    function codigoSiguienteLocal(codigo) {
+      codigo = String(codigo ?? '').trim();
+      if (!codigo) return siguienteCodigoInicial;
+      var m = codigo.match(/^(.+?)(\d+)$/);
+      if (!m) return siguienteCodigoInicial;
+      var prefijo = m[1];
+      var numero = parseInt(m[2], 10);
+      var longitud = m[2].length;
+      var siguiente = numero + 1;
+      var sufijo = String(siguiente).padStart(longitud, '0');
+      return prefijo + sufijo;
+    }
+
+    function toggleUnidadNuevaEnFila(fila) {
+      var selUnidad = fila.querySelector('select[name="producto_nuevo_unidad[]"]');
+      var wrapUnidadNueva = fila.querySelector('.wrap-unidad-nueva-producto');
+      var inputUnidadNueva = fila.querySelector('input[name="producto_nuevo_unidad_nueva[]"]');
+      if (!selUnidad || !wrapUnidadNueva || !inputUnidadNueva) return;
+      var esOtra = selUnidad.value === 'otra';
+      wrapUnidadNueva.style.display = esOtra ? 'block' : 'none';
+      inputUnidadNueva.disabled = !esOtra;
+      if (!esOtra) inputUnidadNueva.value = '';
+    }
+
+    function toggleProductoNuevoEnFila(fila) {
+      var selProducto = fila.querySelector('select[name="producto_id[]"]');
+      var contNuevo = fila.querySelector('.producto-nuevo-container');
+      var inputNombre = fila.querySelector('input[name="producto_nuevo_nombre[]"]');
+      var inputCodigo = fila.querySelector('input[name="producto_nuevo_codigo[]"]');
+      var inputDescripcion = fila.querySelector('input[name="producto_nuevo_descripcion[]"]');
+      var selUnidad = fila.querySelector('select[name="producto_nuevo_unidad[]"]');
+      if (!selProducto || !contNuevo || !inputNombre || !inputCodigo || !inputDescripcion || !selUnidad) return;
+
+      var activar = selProducto.value === 'nuevo';
+      contNuevo.style.display = activar ? 'block' : 'none';
+
+      inputNombre.disabled = !activar;
+      inputNombre.required = activar;
+      inputCodigo.disabled = !activar;
+      inputDescripcion.disabled = !activar;
+      selUnidad.disabled = !activar;
+      selUnidad.required = activar;
+
+      if (!activar) {
+        inputNombre.value = '';
+        inputCodigo.value = '';
+        inputDescripcion.value = '';
+        selUnidad.value = '';
+        toggleUnidadNuevaEnFila(fila);
+      } else {
+        // Si el usuario no indicó código en esta línea, asignamos el siguiente disponible en la página.
+        // (El backend también completa si llega vacío.)
+        if (!inputCodigo.value || String(inputCodigo.value).trim() === '') {
+          inputCodigo.value = siguienteCodigoParaAsignar;
+          siguienteCodigoParaAsignar = codigoSiguienteLocal(siguienteCodigoParaAsignar);
+        } else {
+          // Si trae el código prellenado y coincide con el siguiente a asignar,
+          // avanzamos el puntero para que el próximo renglón no repita el mismo código.
+          if (String(inputCodigo.value).trim() === String(siguienteCodigoParaAsignar).trim()) {
+            siguienteCodigoParaAsignar = codigoSiguienteLocal(siguienteCodigoParaAsignar);
+          }
+        }
+        toggleUnidadNuevaEnFila(fila);
+      }
+    }
 
     function actualizarStockEnFilaEntrada(fila) {
       var sel = fila.querySelector('select[name="producto_id[]"]');
@@ -189,7 +375,13 @@ $quienRecibeEntrada = listarQuienRecibeEntrada();
 
     document.getElementById('lineas').addEventListener('change', function(e) {
       if (e.target && e.target.matches('select[name="producto_id[]"]')) {
-        actualizarStockEnFilaEntrada(e.target.closest('tr'));
+        var fila = e.target.closest('tr');
+        actualizarStockEnFilaEntrada(fila);
+        toggleProductoNuevoEnFila(fila);
+      }
+      if (e.target && e.target.matches('select[name="producto_nuevo_unidad[]"]')) {
+        var fila2 = e.target.closest('tr');
+        toggleUnidadNuevaEnFila(fila2);
       }
     });
 
@@ -200,14 +392,19 @@ $quienRecibeEntrada = listarQuienRecibeEntrada();
       clone.querySelectorAll('input, select').forEach(function(el) {
         if (el.name && el.name.includes('cantidad')) el.value = 1;
         else if (el.tagName === 'SELECT') el.selectedIndex = 0;
+        else if (el.name && el.name.includes('producto_nuevo_')) el.value = '';
       });
+      toggleProductoNuevoEnFila(clone);
       var stockSpan = clone.querySelector('.stock-display');
       if (stockSpan) stockSpan.textContent = '—';
       const lastTd = clone.querySelector('td:last-child');
       lastTd.innerHTML = '<button type="button" class="btn btn-secondary btn-sm btn-icon-only" onclick="this.closest(\'tr\').remove()" title="Quitar línea" aria-label="Quitar línea"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
       tbody.appendChild(clone);
     });
-    document.querySelectorAll('#lineas tr.linea').forEach(actualizarStockEnFilaEntrada);
+    document.querySelectorAll('#lineas tr.linea').forEach(function(fila) {
+      actualizarStockEnFilaEntrada(fila);
+      toggleProductoNuevoEnFila(fila);
+    });
     function toggleNuevo(selId, inputId) {
       var sel = document.getElementById(selId);
       var input = document.getElementById(inputId);

@@ -887,6 +887,24 @@ tr:hover td {
   transition: opacity 0.2s, max-height 0.2s;
 }
 
+.producto-nuevo-container .form-group {
+  margin-bottom: 0.6rem;
+}
+
+.producto-nuevo-container .form-group:last-child {
+  margin-bottom: 0;
+}
+
+.producto-nuevo-container .form-group label {
+  font-size: 0.8rem;
+  margin-bottom: 0.25rem;
+}
+
+.producto-nuevo-container .wrap-unidad-nueva-producto {
+  margin-top: 0.35rem;
+}
+
+
 .form-actions {
   display: flex;
   flex-wrap: wrap;
