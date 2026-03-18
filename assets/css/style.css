@@ -2274,3 +2274,325 @@ body.login-page {
 .login-form .btn {
   margin-top: 0.5rem;
 }
+
+/* Vista detalle transacciones (entradas/salidas): compacto y profesional */
+.pagina-detalle-transaccion .form-card {
+  max-width: 920px;
+  padding: 1.1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.pagina-detalle-transaccion .page-header {
+  margin-bottom: 1rem;
+}
+
+.detalle-transaccion-layout {
+  display: grid !important;
+  grid-template-columns: 320px minmax(0, 1fr) !important;
+  gap: 1rem !important;
+  align-items: start;
+  margin-bottom: 1rem;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1rem 1.1rem;
+}
+
+.detalle-transaccion-layout .form-card {
+  max-width: none !important;
+  margin-bottom: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.detalle-transaccion-cancel-wrapper {
+  grid-column: 1 / -1;
+  margin-top: 0.35rem;
+}
+
+.detalle-transaccion-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 0 0 0.75rem 0;
+}
+
+.detalle-transaccion-header-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Los botones en el header deben alinearse sin márgenes extra */
+.page-header .detalle-transaccion-header-actions {
+  margin: 0;
+}
+
+.detalle-transaccion-meta .detalle-transaccion-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.55rem 0;
+}
+
+.detalle-transaccion-meta {
+  padding-right: 0.85rem;
+  border-right: 1px solid var(--border);
+}
+
+.detalle-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.detalle-meta-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 600;
+}
+
+.detalle-meta-value {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+@media (max-width: 720px) {
+  .detalle-transaccion-layout {
+    grid-template-columns: 1fr;
+    padding: 0.9rem 0.95rem;
+  }
+
+  .detalle-transaccion-actions {
+    justify-content: flex-start;
+  }
+
+  .detalle-transaccion-meta {
+    padding-right: 0;
+    border-right: none;
+  }
+
+  .page-header .detalle-transaccion-header-actions {
+    justify-content: flex-start;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+}
+
+.detalle-transaccion-title {
+  margin: 0 0 0.6rem 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.pagina-detalle-transaccion .detalle-transaccion-table-wrap {
+  margin-bottom: 0;
+}
+
+.pagina-detalle-transaccion .detalle-transaccion-table {
+  table-layout: auto;
+}
+
+.pagina-detalle-transaccion .detalle-transaccion-table th,
+.pagina-detalle-transaccion .detalle-transaccion-table td {
+  padding: 0.45rem 0.75rem;
+}
+
+.pagina-detalle-transaccion .detalle-transaccion-table th {
+  font-size: 0.75rem;
+}
+
+.pagina-detalle-transaccion .detalle-transaccion-table .col-cantidad {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.pagina-detalle-transaccion .detalle-transaccion-table .col-unidad,
+.pagina-detalle-transaccion .detalle-transaccion-table .col-estado {
+  white-space: nowrap;
+}
+
+.pagina-detalle-transaccion .detalle-transaccion-table .col-estado {
+  width: 7rem;
+}
+
+.pagina-detalle-transaccion .detalle-transaccion-table .col-acciones {
+  width: 10.5rem;
+}
+
+.pagina-detalle-transaccion .detalle-transaccion-table form {
+  display: inline;
+}
+
+.detalle-td-null {
+  color: var(--text-muted);
+}
+
+.btn-accent-orange {
+  background: var(--accent-orange) !important;
+  color: #fff !important;
+  border-color: var(--accent-orange) !important;
+}
+
+.btn-accent-orange:hover {
+  box-shadow: 0 2px 6px rgba(255, 152, 0, 0.35);
+  filter: brightness(0.98);
+}
+
+.detalle-transaccion-cancel-card {
+  border-color: var(--accent-orange) !important;
+  background: rgba(255, 152, 0, 0.03);
+}
+
+/* Ajuste visual para el bloque de cancelación dentro del panel unificado */
+.detalle-transaccion-cancel-card {
+  border-style: solid;
+  border-width: 1px;
+  border-radius: var(--radius);
+  padding: 0.95rem 1rem;
+}
+
+.detalle-transaccion-layout .detalle-transaccion-cancel-card {
+  box-shadow: none;
+}
+
+/* Módulo de detalle (líneas) en formularios: más compacto */
+.pagina-nueva-entrada .form-card--detalle,
+.pagina-nueva-salida .form-card--detalle {
+  padding: 1.1rem 1.25rem;
+}
+
+.pagina-nueva-entrada .form-card--detalle .form-card-header,
+.pagina-nueva-salida .form-card--detalle .form-card-header {
+  margin-bottom: 0.9rem;
+  padding-bottom: 0.6rem;
+}
+
+.pagina-nueva-entrada .form-card--detalle .form-card-title,
+.pagina-nueva-salida .form-card--detalle .form-card-title {
+  font-size: 1.0rem;
+}
+
+.pagina-nueva-entrada .form-card--detalle .form-card-sub,
+.pagina-nueva-salida .form-card--detalle .form-card-sub {
+  margin-bottom: 0.75rem;
+}
+
+.pagina-nueva-entrada .lineas-table th,
+.pagina-nueva-entrada .lineas-table td,
+.pagina-nueva-salida .lineas-table th,
+.pagina-nueva-salida .lineas-table td {
+  padding: 0.55rem 0.75rem;
+}
+
+/* Inventario: unificación visual (menos espacio, más alineación) */
+.pagina-inventario .inventario-main {
+  gap: 1rem;
+}
+
+.pagina-inventario .inventario-page-header {
+  padding: 0.95rem 1.15rem;
+  margin-bottom: 0.6rem;
+}
+
+.pagina-inventario .inventario-tabs {
+  margin: 0 0 0.75rem;
+  padding: 0.25rem;
+}
+
+.pagina-inventario .inventario-tab {
+  padding: 0.5rem 0.85rem;
+}
+
+.pagina-inventario .inventario-seccion {
+  gap: 0.75rem;
+}
+
+.pagina-inventario .inventario-seccion-titulo {
+  padding-bottom: 0.25rem;
+  margin-bottom: 0;
+}
+
+.pagina-inventario .inventario-panel-cabecera {
+  padding: 0.75rem 0.95rem;
+}
+
+.pagina-inventario .inventario-panel-titulo {
+  font-size: 1.0rem;
+}
+
+.pagina-inventario .inventario-panel-contador {
+  height: 1.55rem;
+  min-width: 2rem;
+}
+
+.pagina-inventario .inventario-filtro-buscar {
+  padding: 0.75rem 0.95rem;
+}
+
+.pagina-inventario .inventario-form-input {
+  padding: 0.5rem 0.85rem;
+}
+
+.pagina-inventario .inventario-periodo-card {
+  padding: 1.0rem 1.1rem;
+  gap: 1.0rem;
+}
+
+.pagina-inventario .inventario-periodo-resumen {
+  gap: 0.85rem;
+}
+
+.pagina-inventario .inventario-resumen-item {
+  padding: 0.8rem 0.95rem;
+}
+
+.pagina-inventario .inventario-tabla-wrap {
+  padding: 0;
+}
+
+.pagina-inventario .inventario-tabla thead th {
+  padding: 0.55rem 0.9rem;
+}
+
+.pagina-inventario .inventario-tabla tbody td {
+  padding: 0.6rem 0.85rem;
+}
+
+.pagina-inventario .inventario-tabla-total td {
+  padding: 0.75rem 0.9rem !important;
+}
+
+.pagina-inventario .inventario-subseccion-titulo {
+  margin-top: 0.15rem;
+  margin-bottom: 0;
+}
+
+.pagina-inventario .inventario-empty {
+  padding: 1.1rem 0.9rem;
+}
+
+@media (max-width: 720px) {
+  .pagina-inventario .inventario-page-header {
+    padding: 0.95rem 1rem;
+  }
+
+  .pagina-inventario .inventario-page-header-accion {
+    width: 100%;
+  }
+
+  .pagina-inventario .inventario-page-header-accion .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
