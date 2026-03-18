@@ -1,5 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/request_logger.php';
+initRequestLogging();
 
 function estaLogueado(): bool {
     return !empty($_SESSION['usuario_id']);
