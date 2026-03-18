@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/inventario.php';
+require_once __DIR__ . '/modificaciones.php';
 
 function generarReferenciaSalida(): string {
     $pdo = getDB();
@@ -32,6 +33,7 @@ function obtenerSalidaConDetalle(int $id): ?array {
     $pdo = getDB();
     $stmt = $pdo->prepare('
         SELECT s.id, s.referencia, s.fecha, s.estado, s.created_at, s.updated_at, s.created_by,
+               s.quien_entrega_id, s.plantel_id, s.receptor_id,
                qe.nombre AS nombre_entrega, pl.nombre AS plantel_nombre, rec.nombre AS nombre_receptor,
                u.nombre AS created_by_nombre
         FROM salidas s
@@ -110,4 +112,131 @@ function cancelarSalida(int $id): bool {
     $stmt = $pdo->prepare('UPDATE salidas SET estado = ? WHERE id = ? AND estado = ?');
     $stmt->execute(['cancelada', $id, 'completada']);
     return $stmt->rowCount() > 0;
+}
+
+function actualizarSalida(
+    int $salidaId,
+    string $fecha,
+    int $quienEntregaId,
+    int $plantelId,
+    int $receptorId,
+    array $lineas,
+    ?int $usuarioId,
+    string $razon
+): int {
+    $transaccionVieja = obtenerSalidaConDetalle($salidaId);
+    if (!$transaccionVieja) {
+        throw new Exception('Salida no encontrada.');
+    }
+    if (($transaccionVieja['estado'] ?? 'completada') === 'cancelada') {
+        throw new Exception('No se puede editar una salida cancelada.');
+    }
+
+    $oldFecha = (string)($transaccionVieja['fecha'] ?? '');
+    $oldQuienEntregaId = (int)($transaccionVieja['quien_entrega_id'] ?? 0);
+    $oldPlantelId = (int)($transaccionVieja['plantel_id'] ?? 0);
+    $oldReceptorId = (int)($transaccionVieja['receptor_id'] ?? 0);
+
+    $oldTotalesPorProducto = [];
+    foreach (($transaccionVieja['detalle'] ?? []) as $d) {
+        $pid = (int)($d['producto_id'] ?? 0);
+        $qty = (int)($d['cantidad'] ?? 0);
+        if ($pid <= 0 || $qty <= 0) continue;
+        $oldTotalesPorProducto[$pid] = ($oldTotalesPorProducto[$pid] ?? 0) + $qty;
+    }
+
+    $newTotalesPorProducto = [];
+    foreach ($lineas as $l) {
+        $pid = (int)($l['producto_id'] ?? 0);
+        $qty = (int)($l['cantidad'] ?? 0);
+        if ($pid <= 0 || $qty <= 0) continue;
+        $newTotalesPorProducto[$pid] = ($newTotalesPorProducto[$pid] ?? 0) + $qty;
+    }
+
+    // Validación de stock por producto (no dejar negativo).
+    $inventario = inventarioPorProducto();
+    $stockPorId = [];
+    foreach ($inventario as $inv) {
+        $stockPorId[(int)$inv['id']] = (int)($inv['stock'] ?? 0);
+    }
+    $ids = array_unique(array_merge(array_keys($oldTotalesPorProducto), array_keys($newTotalesPorProducto)));
+    foreach ($ids as $pid) {
+        $pid = (int)$pid;
+        $stockAntes = $stockPorId[$pid] ?? 0;
+        $oldQty = (int)($oldTotalesPorProducto[$pid] ?? 0);
+        $newQty = (int)($newTotalesPorProducto[$pid] ?? 0);
+        $stockDespues = $stockAntes - $oldQty + $newQty;
+        if ($stockDespues < 0) {
+            throw new Exception('No hay stock suficiente para realizar estos cambios.');
+        }
+    }
+
+    $pdo = getDB();
+    $pdo->beginTransaction();
+    try {
+        $check = $pdo->prepare('SELECT id FROM salidas WHERE id = ? AND estado != ? LIMIT 1');
+        $check->execute([$salidaId, 'cancelada']);
+        if (!$check->fetch()) {
+            throw new Exception('No se puede editar esta salida (no encontrada o cancelada).');
+        }
+
+        $stmt = $pdo->prepare('
+            UPDATE salidas
+            SET fecha = ?, quien_entrega_id = ?, plantel_id = ?, receptor_id = ?
+            WHERE id = ? AND estado != ?
+        ');
+        $stmt->execute([$fecha, $quienEntregaId, $plantelId, $receptorId, $salidaId, 'cancelada']);
+
+        $stmtDel = $pdo->prepare('DELETE FROM detalle_salidas WHERE salida_id = ?');
+        $stmtDel->execute([$salidaId]);
+
+        $stmt2 = $pdo->prepare('INSERT INTO detalle_salidas (salida_id, producto_id, cantidad, created_by) VALUES (?, ?, ?, ?)');
+        foreach ($lineas as $l) {
+            $pid = (int)($l['producto_id'] ?? 0);
+            $qty = (int)($l['cantidad'] ?? 0);
+            if ($pid <= 0 || $qty <= 0) continue;
+            $stmt2->execute([$salidaId, $pid, $qty, $usuarioId]);
+        }
+
+        $pdo->commit();
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        throw $e;
+    }
+
+    $cambios = [
+        'header' => [],
+        'detalle' => [
+            'items' => [],
+        ],
+    ];
+
+    if ($oldFecha !== (string)$fecha) {
+        $cambios['header']['fecha'] = ['old' => $oldFecha, 'new' => (string)$fecha];
+    }
+    if ($oldQuienEntregaId !== $quienEntregaId) {
+        $cambios['header']['quien_entrega_id'] = ['old' => $oldQuienEntregaId, 'new' => $quienEntregaId];
+    }
+    if ($oldPlantelId !== $plantelId) {
+        $cambios['header']['plantel_id'] = ['old' => $oldPlantelId, 'new' => $plantelId];
+    }
+    if ($oldReceptorId !== $receptorId) {
+        $cambios['header']['receptor_id'] = ['old' => $oldReceptorId, 'new' => $receptorId];
+    }
+
+    $idsDetalle = array_unique(array_merge(array_keys($oldTotalesPorProducto), array_keys($newTotalesPorProducto)));
+    foreach ($idsDetalle as $pid) {
+        $pid = (int)$pid;
+        $oldQty = (int)($oldTotalesPorProducto[$pid] ?? 0);
+        $newQty = (int)($newTotalesPorProducto[$pid] ?? 0);
+        if ($oldQty !== $newQty) {
+            $cambios['detalle']['items'][] = [
+                'producto_id' => $pid,
+                'old_cantidad' => $oldQty,
+                'new_cantidad' => $newQty,
+            ];
+        }
+    }
+
+    return guardarModificacionTransaccion('salida', $salidaId, $razon, $cambios, $usuarioId);
 }

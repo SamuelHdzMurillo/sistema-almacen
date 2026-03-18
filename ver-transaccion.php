@@ -59,6 +59,7 @@ $errorLinea = isset($_GET['error_linea']) && $_GET['error_linea'] === '1';
       </div>
       <?php if ($tipo === 'in'): ?>
         <div class="page-header-accion detalle-transaccion-header-actions">
+          <a href="nueva-entrada.php?id=<?= (int)$id ?>" class="btn btn-primary btn-sm">Editar</a>
           <a href="recibo-entrada.php?id=<?= (int)$id ?>" class="btn btn-secondary btn-sm">Ver recibo</a>
           <a href="recibo-entrada.php?id=<?= (int)$id ?>&hoja=1" target="_blank" rel="noopener" class="btn btn-primary btn-sm" id="btnImprimirReciboEntrada">Imprimir recibo</a>
         </div>
@@ -71,6 +72,7 @@ $errorLinea = isset($_GET['error_linea']) && $_GET['error_linea'] === '1';
         </script>
       <?php elseif ($tipo === 'out'): ?>
         <div class="page-header-accion detalle-transaccion-header-actions">
+          <a href="nueva-salida.php?id=<?= (int)$id ?>" class="btn btn-primary btn-sm">Editar</a>
           <a href="recibo.php?id=<?= (int)$id ?>" class="btn btn-secondary btn-sm">Ver recibo</a>
           <a href="recibo.php?id=<?= (int)$id ?>&hoja=1" target="_blank" rel="noopener" class="btn btn-primary btn-sm" id="btnImprimirRecibo">Imprimir recibo</a>
         </div>
