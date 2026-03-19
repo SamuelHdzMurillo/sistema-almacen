@@ -33,17 +33,21 @@ body {
   padding: 1.5rem;
 }
 
-/* Header */
+/* Header — barra superior a full ancho en todas las páginas */
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid #dddddd;
-  margin-bottom: 1.5rem;
+  padding: 1rem 2.5rem;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 1.75rem;
   background: #ffffff;
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  border-radius: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  /* Rompe el max-width del .container y se pega a los bordes */
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-top: -1.5rem;
 }
 
 .logo {
@@ -56,10 +60,12 @@ body {
 }
 
 .logo-sub {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 400;
   color: var(--text-muted);
-  margin-left: 0.25rem;
+  padding-left: 0.75rem;
+  margin-left: 0.5rem;
+  border-left: 1px solid var(--border);
 }
 
 .header-actions {
@@ -1807,6 +1813,43 @@ body.recibo-hoja {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
+}
+
+/* Selector de almacén — dentro del header */
+.almacen-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-right: 0.75rem;
+  margin-right: 0.5rem;
+  border-right: 1px solid var(--border);
+  margin-top: 0;
+}
+
+.almacen-selector-label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.almacen-selector-select {
+  padding: 0.45rem 0.65rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  min-width: 160px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.almacen-selector-select:focus {
+  outline: none;
+  border-color: var(--accent-green);
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.25);
 }
 .pagina-nueva-entrada .nav-links .nav-link,
 .pagina-nueva-entrada .nav-links a {

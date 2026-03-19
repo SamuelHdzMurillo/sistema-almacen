@@ -37,7 +37,7 @@ $errorLinea = isset($_GET['error_linea']) && $_GET['error_linea'] === '1';
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= htmlspecialchars($titulo) ?> - Sistema de Almacén</title>
   <link rel="icon" type="image/webp" href="assets/css/img/logo_cecyte_grande.webp">
-  <link rel="stylesheet" href="assets/css/style.css?v=3">
+  <link rel="stylesheet" href="assets/css/style.css?v=12">
 </head>
 <body class="pagina-detalle-transaccion">
   <div class="container">
@@ -45,6 +45,7 @@ $errorLinea = isset($_GET['error_linea']) && $_GET['error_linea'] === '1';
       <div class="logo">
         <img src="assets/css/img/logo_cecyte_grande.webp" alt="Cecyte" class="logo-img">
         <span>Sistema de Almacén</span>
+        <span class="logo-sub"><?= htmlspecialchars($titulo) ?></span>
       </div>
       <div class="header-actions">
         <a href="transacciones.php" class="btn btn-secondary">← Volver a transacciones</a>

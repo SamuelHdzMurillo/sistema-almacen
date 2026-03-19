@@ -136,7 +136,7 @@ $modificacionesParaVista = $mostrarTodas ? $historialModificaciones : array_valu
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nueva salida - Sistema de Almacén</title>
   <link rel="icon" type="image/webp" href="assets/css/img/logo_cecyte_grande.webp">
-  <link rel="stylesheet" href="assets/css/style.css?v=5">
+  <link rel="stylesheet" href="assets/css/style.css?v=12">
 </head>
 <body class="pagina-nueva-salida">
   <div class="container">
@@ -144,6 +144,7 @@ $modificacionesParaVista = $mostrarTodas ? $historialModificaciones : array_valu
       <div class="logo">
         <img src="assets/css/img/logo_cecyte_grande.webp" alt="Cecyte" class="logo-img">
         <span>Sistema de Almacén</span>
+        <span class="logo-sub">Nueva salida</span>
       </div>
       <div class="header-actions">
         <a href="nueva-transaccion.php" class="btn btn-primary">+ Nueva transacción</a>

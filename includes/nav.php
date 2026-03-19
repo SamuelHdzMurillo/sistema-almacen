@@ -50,11 +50,11 @@ if ($esAdmin) {
       $almacenActivo = (int) (getAlmacenActivo() ?? 0);
       $almacenes = listarAlmacenes();
     ?>
-    <div class="almacen-selector" style="margin-top:0.75rem; display:flex; gap:0.5rem; align-items:center;">
-      <label for="almacen_id_select" style="font-weight:600; font-size:0.95rem;">Almacén:</label>
+    <div class="almacen-selector" id="almacen-selector-box">
+      <label for="almacen_id_select" class="almacen-selector-label">Almacén:</label>
       <select
         id="almacen_id_select"
-        style="min-width:220px;"
+        class="almacen-selector-select"
         aria-label="Selector de almacén"
       >
         <?php foreach ($almacenes as $a): ?>
@@ -66,6 +66,13 @@ if ($esAdmin) {
     </div>
     <script>
       (function() {
+        // Mueve el selector de almacén al header (.header-actions) automáticamente
+        var box = document.getElementById('almacen-selector-box');
+        var actions = document.querySelector('.header-actions');
+        if (box && actions) {
+          actions.insertBefore(box, actions.firstChild);
+        }
+
         var sel = document.getElementById('almacen_id_select');
         if (!sel) return;
         sel.addEventListener('change', function() {
@@ -74,7 +81,6 @@ if ($esAdmin) {
             url.searchParams.set('almacen_id', this.value);
             window.location.href = url.pathname + url.search;
           } catch (e) {
-            // Fallback simple si URL no está disponible.
             var sep = window.location.search && window.location.search.length ? '&' : '?';
             window.location.href = window.location.pathname + window.location.search + sep + 'almacen_id=' + encodeURIComponent(this.value);
           }

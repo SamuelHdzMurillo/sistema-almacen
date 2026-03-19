@@ -115,7 +115,7 @@ $almacenActivo = (int)($_SESSION['almacen_id'] ?? 0);
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Administración de almacenes - Sistema de Almacén</title>
   <link rel="icon" type="image/webp" href="assets/css/img/logo_cecyte_grande.webp">
-  <link rel="stylesheet" href="assets/css/style.css?v=1">
+  <link rel="stylesheet" href="assets/css/style.css?v=12">
 </head>
 <body>
   <div class="container">
@@ -123,6 +123,7 @@ $almacenActivo = (int)($_SESSION['almacen_id'] ?? 0);
       <div class="logo">
         <img src="assets/css/img/logo_cecyte_grande.webp" alt="Cecyte" class="logo-img">
         <span>Sistema de Almacén</span>
+        <span class="logo-sub">Administración de almacenes</span>
       </div>
       <div class="header-actions">
         <a href="index.php" class="btn btn-secondary">Volver al panel</a>

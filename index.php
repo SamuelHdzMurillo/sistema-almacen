@@ -40,7 +40,7 @@ $totalSalidas = (int)$stmtSalidas->fetch()['t'];
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel de control - Sistema de Almacén</title>
   <link rel="icon" type="image/webp" href="assets/css/img/logo_cecyte_grande.webp">
-  <link rel="stylesheet" href="assets/css/style.css?v=2">
+  <link rel="stylesheet" href="assets/css/style.css?v=12">
 </head>
 <body>
   <div class="container">

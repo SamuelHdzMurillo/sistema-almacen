@@ -9,7 +9,7 @@ requerirLogin();
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nueva transacción - Sistema de Almacén</title>
   <link rel="icon" type="image/webp" href="assets/css/img/logo_cecyte_grande.webp">
-  <link rel="stylesheet" href="assets/css/style.css?v=2">
+  <link rel="stylesheet" href="assets/css/style.css?v=12">
 </head>
 <body>
   <div class="container">
@@ -17,6 +17,7 @@ requerirLogin();
       <div class="logo">
         <img src="assets/css/img/logo_cecyte_grande.webp" alt="Cecyte" class="logo-img">
         <span>Sistema de Almacén</span>
+        <span class="logo-sub">Nueva transacción</span>
       </div>
       <a href="logout.php" class="btn btn-secondary">Salir</a>
     </header>
