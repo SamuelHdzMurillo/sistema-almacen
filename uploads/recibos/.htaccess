@@ -1,0 +1,11 @@
+# Directorio de archivos de recibo de entrega (imágenes WebP y PDF)
+# Seguridad: se impide la ejecución de scripts PHP u otros lenguajes.
+
+Options -Indexes
+php_flag engine off
+
+# Solo se sirven los tipos permitidos
+<FilesMatch "\.(php|php\d|phtml|pl|py|rb|sh|cgi)$">
+  Order allow,deny
+  Deny from all
+</FilesMatch>

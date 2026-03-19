@@ -37,7 +37,7 @@ function obtenerSalidaConDetalle(int $id, ?int $almacenId = null): ?array {
     $almacenId = $almacenId !== null ? (int)$almacenId : getAlmacenActivo();
     $stmt = $pdo->prepare('
         SELECT s.id, s.referencia, s.fecha, s.estado, s.created_at, s.updated_at, s.created_by,
-               s.quien_entrega_id, s.plantel_id, s.receptor_id,
+               s.quien_entrega_id, s.plantel_id, s.receptor_id, s.recibo_entrega_doc,
                qe.nombre AS nombre_entrega, pl.nombre AS plantel_nombre, rec.nombre AS nombre_receptor,
                u.nombre AS created_by_nombre
         FROM salidas s
@@ -69,7 +69,8 @@ function crearSalida(
     int $receptorId,
     array $lineas,
     ?int $usuarioId = null,
-    ?int $almacenId = null
+    ?int $almacenId = null,
+    ?string $reciboDoc = null
 ): int {
     $pdo = getDB();
     $almacenId = $almacenId !== null ? (int)$almacenId : getAlmacenActivo();
@@ -98,10 +99,10 @@ function crearSalida(
     $pdo->beginTransaction();
     try {
         $stmt = $pdo->prepare('
-            INSERT INTO salidas (referencia, fecha, quien_entrega_id, plantel_id, receptor_id, almacen_id, estado, created_by)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO salidas (referencia, fecha, quien_entrega_id, plantel_id, receptor_id, almacen_id, estado, created_by, recibo_entrega_doc)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ');
-        $stmt->execute([$ref, $fecha, $quienEntregaId, $plantelId, $receptorId, $almacenId, 'completada', $usuarioId]);
+        $stmt->execute([$ref, $fecha, $quienEntregaId, $plantelId, $receptorId, $almacenId, 'completada', $usuarioId, $reciboDoc]);
         $salidaId = (int) $pdo->lastInsertId();
         $stmt2 = $pdo->prepare('INSERT INTO detalle_salidas (salida_id, producto_id, cantidad, created_by) VALUES (?, ?, ?, ?)');
         foreach ($lineas as $l) {
@@ -132,6 +133,70 @@ function totalSalidasEsteMes(?int $almacenId = null): int {
     return (int) $stmt->fetch()['t'];
 }
 
+/**
+ * Lista todas las salidas que NO tienen recibo de entrega adjunto.
+ * Ordenadas por fecha descendente.
+ */
+function listarSalidasSinRecibo(?int $almacenId = null): array {
+    $pdo = getDB();
+    $almacenId = $almacenId !== null ? (int)$almacenId : getAlmacenActivo();
+    $stmt = $pdo->prepare('
+        SELECT s.id, s.referencia, s.fecha, s.estado, s.created_at,
+               qe.nombre AS nombre_entrega, pl.nombre AS plantel_nombre, rec.nombre AS nombre_receptor,
+               u.nombre AS created_by_nombre
+        FROM salidas s
+        LEFT JOIN catalogo_quien_entrega qe ON qe.id = s.quien_entrega_id
+        LEFT JOIN catalogo_plantel pl ON pl.id = s.plantel_id
+        LEFT JOIN catalogo_receptor rec ON rec.id = s.receptor_id
+        LEFT JOIN usuarios u ON u.id = s.created_by
+        WHERE s.almacen_id = ?
+          AND (s.recibo_entrega_doc IS NULL OR s.recibo_entrega_doc = \'\')
+          AND s.estado != \'cancelada\'
+        ORDER BY s.fecha DESC, s.created_at DESC
+    ');
+    $stmt->execute([$almacenId]);
+    return $stmt->fetchAll();
+}
+
+/**
+ * Lista todas las salidas que SÍ tienen recibo de entrega adjunto.
+ * Ordenadas por fecha descendente.
+ */
+function listarSalidasConRecibo(?int $almacenId = null): array {
+    $pdo = getDB();
+    $almacenId = $almacenId !== null ? (int)$almacenId : getAlmacenActivo();
+    $stmt = $pdo->prepare('
+        SELECT s.id, s.referencia, s.fecha, s.estado, s.created_at, s.recibo_entrega_doc,
+               qe.nombre AS nombre_entrega, pl.nombre AS plantel_nombre, rec.nombre AS nombre_receptor,
+               u.nombre AS created_by_nombre
+        FROM salidas s
+        LEFT JOIN catalogo_quien_entrega qe ON qe.id = s.quien_entrega_id
+        LEFT JOIN catalogo_plantel pl ON pl.id = s.plantel_id
+        LEFT JOIN catalogo_receptor rec ON rec.id = s.receptor_id
+        LEFT JOIN usuarios u ON u.id = s.created_by
+        WHERE s.almacen_id = ?
+          AND s.recibo_entrega_doc IS NOT NULL
+          AND s.recibo_entrega_doc != \'\'
+        ORDER BY s.fecha DESC, s.created_at DESC
+    ');
+    $stmt->execute([$almacenId]);
+    return $stmt->fetchAll();
+}
+
+/**
+ * Guarda (o reemplaza) el recibo de entrega de una salida.
+ */
+function guardarReciboSalida(int $salidaId, string $rutaDoc, ?int $almacenId = null): bool {
+    $pdo = getDB();
+    $almacenId = $almacenId !== null ? (int)$almacenId : getAlmacenActivo();
+    $stmt = $pdo->prepare('
+        UPDATE salidas SET recibo_entrega_doc = ?
+        WHERE id = ? AND almacen_id = ?
+    ');
+    $stmt->execute([$rutaDoc, $salidaId, $almacenId]);
+    return $stmt->rowCount() > 0;
+}
+
 /** Marca una salida como cancelada. El stock volverá a contar esos ítems. */
 function cancelarSalida(int $id, ?int $almacenId = null): bool {
     $pdo = getDB();
@@ -154,7 +219,9 @@ function actualizarSalida(
     array $lineas,
     ?int $usuarioId,
     string $razon,
-    ?int $almacenId = null
+    ?int $almacenId = null,
+    ?string $reciboDoc = null,
+    bool $quitarRecibo = false
 ): int {
     $almacenId = $almacenId !== null ? (int)$almacenId : getAlmacenActivo();
     $transaccionVieja = obtenerSalidaConDetalle($salidaId, $almacenId);
@@ -215,12 +282,20 @@ function actualizarSalida(
             throw new Exception('No se puede editar esta salida (no encontrada o cancelada).');
         }
 
+        // Determinar el valor final del recibo a guardar
+        $reciboDocFinal = $transaccionVieja['recibo_entrega_doc'] ?? null;
+        if ($reciboDoc !== null) {
+            $reciboDocFinal = $reciboDoc;
+        } elseif ($quitarRecibo) {
+            $reciboDocFinal = null;
+        }
+
         $stmt = $pdo->prepare('
             UPDATE salidas
-            SET fecha = ?, quien_entrega_id = ?, plantel_id = ?, receptor_id = ?
+            SET fecha = ?, quien_entrega_id = ?, plantel_id = ?, receptor_id = ?, recibo_entrega_doc = ?
             WHERE id = ? AND almacen_id = ? AND estado != ?
         ');
-        $stmt->execute([$fecha, $quienEntregaId, $plantelId, $receptorId, $salidaId, $almacenId, 'cancelada']);
+        $stmt->execute([$fecha, $quienEntregaId, $plantelId, $receptorId, $reciboDocFinal, $salidaId, $almacenId, 'cancelada']);
 
         $stmtDel = $pdo->prepare('DELETE FROM detalle_salidas WHERE salida_id = ?');
         $stmtDel->execute([$salidaId]);

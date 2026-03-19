@@ -72,7 +72,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         } catch (Exception $e) {
             if ($e->getMessage() !== '__RAZON_VACIA__') {
-                // Mostrar el motivo real (por qué no se puede actualizar).
                 $error = $e->getMessage();
             }
         }

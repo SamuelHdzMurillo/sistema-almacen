@@ -16,6 +16,7 @@ if (!isset($nav_activo)) {
         'nueva-salida' => 'nueva-salida',
         'productos' => 'productos',
         'facturas' => 'facturas',
+        'recibos' => 'recibos',
         'ver-logs' => 'logs',
     ];
     $nav_activo = $map[$script] ?? '';
@@ -33,6 +34,7 @@ $nav_items = [
     'nueva-salida' => ['url' => 'nueva-salida.php', 'label' => 'Nueva salida'],
     'productos' => ['url' => 'productos.php', 'label' => 'Productos'],
     'facturas' => ['url' => 'facturas.php', 'label' => 'Facturas'],
+    'recibos'  => ['url' => 'recibos.php',  'label' => 'Recibos'],
 ];
 
 if ($esAdmin) {
