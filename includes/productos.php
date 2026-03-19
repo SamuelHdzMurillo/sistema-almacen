@@ -49,13 +49,36 @@ function obtenerSiguienteCodigoProducto(): string {
 
 function crearProducto(array $d, ?int $usuarioId = null): int {
     $pdo = getDB();
+    $codigo = isset($d['codigo']) ? trim((string)$d['codigo']) : null;
+    $codigo = ($codigo === '') ? null : $codigo;
+    $nombre = isset($d['nombre']) ? trim((string)$d['nombre']) : '';
+    $nombre = $nombre !== '' ? $nombre : null;
+
+    if ($nombre === null) {
+        throw new Exception('El nombre del producto es obligatorio.');
+    }
+
+    $descripcion = array_key_exists('descripcion', $d) ? ($d['descripcion'] ?? null) : null;
+    $unidad = isset($d['unidad']) && $d['unidad'] !== '' ? (string)$d['unidad'] : 'und';
+
     $stmt = $pdo->prepare('INSERT INTO productos (codigo, nombre, descripcion, unidad, created_by) VALUES (?, ?, ?, ?, ?)');
-    $stmt->execute([
-        $d['codigo'] ?? null,
-        $d['nombre'],
-        $d['descripcion'] ?? null,
-        $d['unidad'] ?? 'und',
-        $usuarioId
-    ]);
-    return (int) $pdo->lastInsertId();
+    try {
+        $stmt->execute([
+            $codigo,
+            $nombre,
+            $descripcion,
+            $unidad,
+            $usuarioId
+        ]);
+    } catch (Throwable $e) {
+        // 23000 = integridad referencial / unique violation (en MySQL suele venir 1062 Duplicate entry).
+        $msg = strtolower($e->getMessage());
+        $isDuplicate = ($e->getCode() === '23000') || str_contains($msg, '1062') || str_contains($msg, 'duplicate');
+        if ($isDuplicate) {
+            throw new Exception('No se puede duplicar el producto: el código o el nombre ya existe.');
+        }
+        throw $e;
+    }
+
+    return (int)$pdo->lastInsertId();
 }

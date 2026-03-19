@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../config/request_logger.php';
+require_once __DIR__ . '/almacenes.php';
 initRequestLogging();
 
 function estaLogueado(): bool {
@@ -15,11 +16,14 @@ function requerirLogin(): void {
         header('Location: login.php?redir=' . urlencode($_SERVER['REQUEST_URI'] ?? 'index.php'));
         exit;
     }
+
+    // Asegura que exista un almacén activo en sesión.
+    asegurarAlmacenActivo();
 }
 
 function login(string $usuario, string $clave): bool {
     $pdo = getDB();
-    $stmt = $pdo->prepare('SELECT id, usuario, clave, nombre FROM usuarios WHERE usuario = ?');
+    $stmt = $pdo->prepare('SELECT id, usuario, clave, nombre, almacen_id FROM usuarios WHERE usuario = ?');
     $stmt->execute([$usuario]);
     $u = $stmt->fetch();
     if (!$u || !password_verify($clave, $u['clave'])) {
@@ -30,6 +34,14 @@ function login(string $usuario, string $clave): bool {
     }
     $_SESSION['usuario_id'] = $u['id'];
     $_SESSION['usuario_nombre'] = $u['nombre'] ?: $u['usuario'];
+
+    // Si el usuario ya tiene almacén asignado, lo ponemos en sesión.
+    if (isset($u['almacen_id']) && (int)$u['almacen_id'] > 0) {
+        $_SESSION['almacen_id'] = (int)$u['almacen_id'];
+    }
+
+    // Si es admin y no hay almacén aún, se resolverá en asegurarAlmacenActivo().
+    asegurarAlmacenActivo();
     return true;
 }
 

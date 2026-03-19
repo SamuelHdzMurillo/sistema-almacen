@@ -10,9 +10,28 @@ $totalItems = totalItems();
 $cap = capacidadTotal();
 $transacciones = listarTransaccionesRecientes(10);
 
+$almacenId = getAlmacenActivo();
 $pdo = getDB();
-$totalEntradas = (int) $pdo->query("SELECT COALESCE(SUM(de.cantidad), 0) AS t FROM detalle_entradas de JOIN entradas e ON e.id = de.entrada_id WHERE e.estado = 'completada'")->fetch()['t'];
-$totalSalidas = (int) $pdo->query("SELECT COALESCE(SUM(ds.cantidad), 0) AS t FROM detalle_salidas ds JOIN salidas s ON s.id = ds.salida_id WHERE s.estado = 'completada'")->fetch()['t'];
+$stmtEntradas = $pdo->prepare("
+  SELECT COALESCE(SUM(de.cantidad), 0) AS t
+  FROM detalle_entradas de
+  JOIN entradas e ON e.id = de.entrada_id
+  WHERE e.estado = 'completada'
+    AND e.almacen_id = ?
+    AND (de.estado = 'activa' OR de.estado IS NULL)
+");
+$stmtEntradas->execute([$almacenId]);
+$totalEntradas = (int)$stmtEntradas->fetch()['t'];
+
+$stmtSalidas = $pdo->prepare("
+  SELECT COALESCE(SUM(ds.cantidad), 0) AS t
+  FROM detalle_salidas ds
+  JOIN salidas s ON s.id = ds.salida_id
+  WHERE s.estado = 'completada'
+    AND s.almacen_id = ?
+");
+$stmtSalidas->execute([$almacenId]);
+$totalSalidas = (int)$stmtSalidas->fetch()['t'];
 ?>
 <!DOCTYPE html>
 <html lang="es">

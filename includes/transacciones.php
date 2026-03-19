@@ -1,10 +1,12 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/almacenes.php';
 
-function listarTransaccionesRecientes(int $limite = 20, ?string $tipo = null, ?string $busqueda = null): array {
+function listarTransaccionesRecientes(int $limite = 20, ?string $tipo = null, ?string $busqueda = null, ?int $almacenId = null): array {
     $pdo = getDB();
     $entradas = [];
     $salidas = [];
+    $almacenId = $almacenId !== null ? (int)$almacenId : getAlmacenActivo();
 
     if ($tipo !== 'out') {
         $sql = "
@@ -16,9 +18,9 @@ function listarTransaccionesRecientes(int $limite = 20, ?string $tipo = null, ?s
             JOIN detalle_entradas de ON de.entrada_id = e.id AND (de.estado = 'activa' OR de.estado IS NULL)
             JOIN productos p ON p.id = de.producto_id
             LEFT JOIN usuarios u ON u.id = e.created_by
-            WHERE 1=1
+            WHERE 1=1 AND e.almacen_id = ?
         ";
-        $params = [];
+        $params = [$almacenId];
         if ($busqueda) {
             $sql .= " AND (e.referencia LIKE ? OR e.factura LIKE ? OR p.nombre LIKE ? OR prov.nombre LIKE ?)";
             $q = "%{$busqueda}%";
@@ -43,9 +45,9 @@ function listarTransaccionesRecientes(int $limite = 20, ?string $tipo = null, ?s
             JOIN detalle_salidas ds ON ds.salida_id = s.id
             JOIN productos p ON p.id = ds.producto_id
             LEFT JOIN usuarios u ON u.id = s.created_by
-            WHERE 1=1
+            WHERE 1=1 AND s.almacen_id = ?
         ";
-        $params = [];
+        $params = [$almacenId];
         if ($busqueda) {
             $sql .= " AND (s.referencia LIKE ? OR p.nombre LIKE ? OR rec.nombre LIKE ? OR qe.nombre LIKE ? OR pl.nombre LIKE ?)";
             $q = "%{$busqueda}%";
@@ -84,8 +86,15 @@ function listarTransaccionesRecientes(int $limite = 20, ?string $tipo = null, ?s
  * @param int $limite           Límite de filas
  * @return array
  */
-function listarEntregasPorPlantelYReceptor(?int $plantelId = null, ?int $receptorId = null, ?string $busqueda = null, int $limite = 200): array {
+function listarEntregasPorPlantelYReceptor(
+    ?int $plantelId = null,
+    ?int $receptorId = null,
+    ?string $busqueda = null,
+    int $limite = 200,
+    ?int $almacenId = null
+): array {
     $pdo = getDB();
+    $almacenId = $almacenId !== null ? (int)$almacenId : getAlmacenActivo();
     $sql = "
         SELECT s.id AS salida_id, s.referencia, s.fecha, s.estado,
                pl.nombre AS plantel_nombre, pl.id AS plantel_id,
@@ -99,9 +108,9 @@ function listarEntregasPorPlantelYReceptor(?int $plantelId = null, ?int $recepto
         LEFT JOIN catalogo_quien_entrega qe ON qe.id = s.quien_entrega_id
         JOIN detalle_salidas ds ON ds.salida_id = s.id
         JOIN productos p ON p.id = ds.producto_id
-        WHERE s.estado = 'completada'
+        WHERE s.estado = 'completada' AND s.almacen_id = ?
     ";
-    $params = [];
+    $params = [$almacenId];
     if ($plantelId !== null && $plantelId > 0) {
         $sql .= " AND s.plantel_id = ?";
         $params[] = $plantelId;

@@ -1,11 +1,13 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/almacenes.php';
 
 /**
  * Lista entradas completadas de un mes/año (cabecera + detalle agrupado).
  */
-function listarEntradasPorMes(int $anio, int $mes): array {
+function listarEntradasPorMes(int $anio, int $mes, ?int $almacenId = null): array {
     $pdo = getDB();
+    $almacenId = $almacenId !== null ? (int)$almacenId : getAlmacenActivo();
     $stmt = $pdo->prepare("
         SELECT e.id, e.referencia, e.fecha, e.estado, e.created_at,
                u.nombre AS created_by_nombre,
@@ -15,11 +17,12 @@ function listarEntradasPorMes(int $anio, int $mes): array {
         LEFT JOIN catalogo_proveedor prov ON prov.id = e.proveedor_id
         LEFT JOIN catalogo_quien_recibe_entrada qr ON qr.id = e.quien_recibe_id
         WHERE e.estado = 'completada'
+          AND e.almacen_id = ?
           AND YEAR(e.fecha) = ?
           AND MONTH(e.fecha) = ?
         ORDER BY e.fecha ASC, e.id ASC
     ");
-    $stmt->execute([$anio, $mes]);
+    $stmt->execute([$almacenId, $anio, $mes]);
     $entradas = $stmt->fetchAll();
     foreach ($entradas as &$e) {
         $st = $pdo->prepare("
@@ -37,8 +40,9 @@ function listarEntradasPorMes(int $anio, int $mes): array {
 /**
  * Lista salidas completadas de un mes/año (cabecera + detalle agrupado).
  */
-function listarSalidasPorMes(int $anio, int $mes): array {
+function listarSalidasPorMes(int $anio, int $mes, ?int $almacenId = null): array {
     $pdo = getDB();
+    $almacenId = $almacenId !== null ? (int)$almacenId : getAlmacenActivo();
     $stmt = $pdo->prepare("
         SELECT s.id, s.referencia, s.fecha, s.estado, s.created_at,
                qe.nombre AS nombre_entrega, pl.nombre AS plantel_nombre, rec.nombre AS nombre_receptor,
@@ -49,11 +53,12 @@ function listarSalidasPorMes(int $anio, int $mes): array {
         LEFT JOIN catalogo_receptor rec ON rec.id = s.receptor_id
         LEFT JOIN usuarios u ON u.id = s.created_by
         WHERE s.estado = 'completada'
+          AND s.almacen_id = ?
           AND YEAR(s.fecha) = ?
           AND MONTH(s.fecha) = ?
         ORDER BY s.fecha ASC, s.id ASC
     ");
-    $stmt->execute([$anio, $mes]);
+    $stmt->execute([$almacenId, $anio, $mes]);
     $salidas = $stmt->fetchAll();
     foreach ($salidas as &$s) {
         $st = $pdo->prepare("
@@ -71,24 +76,30 @@ function listarSalidasPorMes(int $anio, int $mes): array {
 /**
  * Totales de unidades entradas/salidas en un mes.
  */
-function resumenMes(int $anio, int $mes): array {
+function resumenMes(int $anio, int $mes, ?int $almacenId = null): array {
     $pdo = getDB();
+    $almacenId = $almacenId !== null ? (int)$almacenId : getAlmacenActivo();
     $stmt = $pdo->prepare("
         SELECT COALESCE(SUM(de.cantidad), 0) AS total
         FROM detalle_entradas de
         JOIN entradas e ON e.id = de.entrada_id
-        WHERE e.estado = 'completada' AND (de.estado = 'activa' OR de.estado IS NULL) AND YEAR(e.fecha) = ? AND MONTH(e.fecha) = ?
+        WHERE e.estado = 'completada'
+          AND e.almacen_id = ?
+          AND (de.estado = 'activa' OR de.estado IS NULL)
+          AND YEAR(e.fecha) = ? AND MONTH(e.fecha) = ?
     ");
-    $stmt->execute([$anio, $mes]);
+    $stmt->execute([$almacenId, $anio, $mes]);
     $totalEntradas = (int) $stmt->fetch()['total'];
 
     $stmt = $pdo->prepare("
         SELECT COALESCE(SUM(ds.cantidad), 0) AS total
         FROM detalle_salidas ds
         JOIN salidas s ON s.id = ds.salida_id
-        WHERE s.estado = 'completada' AND YEAR(s.fecha) = ? AND MONTH(s.fecha) = ?
+        WHERE s.estado = 'completada'
+          AND s.almacen_id = ?
+          AND YEAR(s.fecha) = ? AND MONTH(s.fecha) = ?
     ");
-    $stmt->execute([$anio, $mes]);
+    $stmt->execute([$almacenId, $anio, $mes]);
     $totalSalidas = (int) $stmt->fetch()['total'];
 
     return [

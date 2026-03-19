@@ -7,21 +7,33 @@ SET FOREIGN_KEY_CHECKS = 0;
 CREATE DATABASE IF NOT EXISTS sistema_almacen CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE sistema_almacen;
 
+-- Tabla: Almacenes
+CREATE TABLE IF NOT EXISTS almacenes (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(150) NOT NULL UNIQUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+INSERT IGNORE INTO almacenes (nombre) VALUES ('Principal');
+
 -- Tabla: Usuarios (login)
 CREATE TABLE IF NOT EXISTS usuarios (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   usuario VARCHAR(80) NOT NULL UNIQUE,
   clave VARCHAR(255) NOT NULL,
   nombre VARCHAR(150),
+  almacen_id INT UNSIGNED NULL COMMENT 'Almacén al que pertenece el usuario',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (almacen_id) REFERENCES almacenes(id) ON DELETE SET NULL
 );
 
 -- Tabla: Productos
 CREATE TABLE IF NOT EXISTS productos (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   codigo VARCHAR(50) UNIQUE,
-  nombre VARCHAR(150) NOT NULL,
+  nombre VARCHAR(150) NOT NULL UNIQUE,
   descripcion TEXT,
   unidad VARCHAR(20) DEFAULT 'und',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -56,12 +68,14 @@ CREATE TABLE IF NOT EXISTS entradas (
   fecha DATE NOT NULL,
   proveedor_id INT UNSIGNED NOT NULL,
   quien_recibe_id INT UNSIGNED NOT NULL,
+  almacen_id INT UNSIGNED NOT NULL,
   estado ENUM('completada','pendiente','cancelada') DEFAULT 'completada',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   created_by INT UNSIGNED NULL COMMENT 'Usuario que registró la entrada',
   FOREIGN KEY (proveedor_id) REFERENCES catalogo_proveedor(id),
   FOREIGN KEY (quien_recibe_id) REFERENCES catalogo_quien_recibe_entrada(id),
+  FOREIGN KEY (almacen_id) REFERENCES almacenes(id),
   FOREIGN KEY (created_by) REFERENCES usuarios(id) ON DELETE SET NULL
 );
 
@@ -113,6 +127,7 @@ CREATE TABLE IF NOT EXISTS salidas (
   quien_entrega_id INT UNSIGNED NOT NULL COMMENT 'Catálogo: quien entrega el material',
   plantel_id INT UNSIGNED NOT NULL COMMENT 'Catálogo: plantel al que se entrega',
   receptor_id INT UNSIGNED NOT NULL COMMENT 'Catálogo: persona que recibe',
+  almacen_id INT UNSIGNED NOT NULL,
   estado ENUM('completada','pendiente','cancelada') DEFAULT 'completada',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -120,6 +135,7 @@ CREATE TABLE IF NOT EXISTS salidas (
   FOREIGN KEY (quien_entrega_id) REFERENCES catalogo_quien_entrega(id),
   FOREIGN KEY (plantel_id) REFERENCES catalogo_plantel(id),
   FOREIGN KEY (receptor_id) REFERENCES catalogo_receptor(id),
+  FOREIGN KEY (almacen_id) REFERENCES almacenes(id),
   FOREIGN KEY (created_by) REFERENCES usuarios(id) ON DELETE SET NULL
 );
 
@@ -146,6 +162,10 @@ DROP INDEX IF EXISTS idx_salidas_fecha ON salidas;
 CREATE INDEX idx_salidas_fecha ON salidas(fecha);
 DROP INDEX IF EXISTS idx_salidas_estado ON salidas;
 CREATE INDEX idx_salidas_estado ON salidas(estado);
+DROP INDEX IF EXISTS idx_entradas_almacen_id ON entradas;
+CREATE INDEX idx_entradas_almacen_id ON entradas(almacen_id);
+DROP INDEX IF EXISTS idx_salidas_almacen_id ON salidas;
+CREATE INDEX idx_salidas_almacen_id ON salidas(almacen_id);
 -- No crear/drop índices en entrada_id y salida_id: los exige la FK y no se pueden borrar
 
 SET FOREIGN_KEY_CHECKS = 1;
