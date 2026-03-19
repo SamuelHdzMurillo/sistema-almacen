@@ -14,9 +14,15 @@ if (!isset($nav_activo)) {
         'nueva-entrada' => 'nueva-entrada',
         'nueva-salida' => 'nueva-salida',
         'productos' => 'productos',
+        'ver-logs' => 'logs',
     ];
     $nav_activo = $map[$script] ?? '';
 }
+
+$usuarioNombreSesion = (string) ($_SESSION['usuario_nombre'] ?? '');
+$usuarioIdSesion = (int) ($_SESSION['usuario_id'] ?? 0);
+$esAdmin = ($usuarioNombreSesion === 'Administrador') || ($usuarioIdSesion === 1);
+
 $nav_items = [
     'inicio' => ['url' => 'index.php', 'label' => 'Inicio'],
     'transacciones' => ['url' => 'transacciones.php', 'label' => 'Transacciones'],
@@ -25,6 +31,10 @@ $nav_items = [
     'nueva-salida' => ['url' => 'nueva-salida.php', 'label' => 'Nueva salida'],
     'productos' => ['url' => 'productos.php', 'label' => 'Productos'],
 ];
+
+if ($esAdmin) {
+    $nav_items['logs'] = ['url' => 'ver-logs.php', 'label' => 'Logs'];
+}
 ?>
 <nav class="nav-links" aria-label="Navegación principal">
   <?php foreach ($nav_items as $key => $item): ?>
