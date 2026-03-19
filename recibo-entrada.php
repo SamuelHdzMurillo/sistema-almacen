@@ -25,7 +25,7 @@ $totalUnidades = array_sum(array_column($detalleActivo, 'cantidad'));
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= htmlspecialchars($titulo) ?></title>
   <link rel="icon" type="image/webp" href="assets/css/img/logo_cecyte_grande.webp">
-  <link rel="stylesheet" href="assets/css/style.css?v=12">
+  <link rel="stylesheet" href="assets/css/style.css?v=13">
   <?php if ($hoja): ?>
   <style media="print">@page { size: letter; margin: 10mm; }</style>
   <?php endif; ?>
@@ -56,7 +56,15 @@ $totalUnidades = array_sum(array_column($detalleActivo, 'cantidad'));
         </div>
         <div class="recibo-dato">
           <span class="recibo-dato-label">Factura / Orden</span>
-          <span class="recibo-dato-valor"><?= htmlspecialchars($entrada['factura'] ?? '—') ?></span>
+          <span class="recibo-dato-valor">
+            <?= htmlspecialchars($entrada['factura'] ?? '—') ?>
+            <?php if (!empty($entrada['factura_doc'])): ?>
+              <?php $esPdfRec = preg_match('/\.pdf$/i', $entrada['factura_doc']); ?>
+              <a href="<?= htmlspecialchars($entrada['factura_doc']) ?>" target="_blank" rel="noopener" class="factura-doc-ver-link no-print">
+                <?= $esPdfRec ? 'Ver PDF' : 'Ver imagen' ?>
+              </a>
+            <?php endif; ?>
+          </span>
         </div>
         <div class="recibo-dato">
           <span class="recibo-dato-label">Proveedor</span>
@@ -146,7 +154,14 @@ $totalUnidades = array_sum(array_column($detalleActivo, 'cantidad'));
       <p>Se ha registrado la entrada <strong><?= htmlspecialchars($entrada['referencia']) ?></strong>. Abra el recibo para imprimirlo; quien recibe firmará a mano en el espacio indicado.</p>
       <div class="recibo-recibido-preview">
         <span><strong>Folio:</strong> <?= htmlspecialchars($entrada['referencia']) ?></span>
-        <span><strong>Factura:</strong> <?= htmlspecialchars($entrada['factura'] ?? '—') ?></span>
+        <span>
+          <strong>Factura:</strong> <?= htmlspecialchars($entrada['factura'] ?? '—') ?>
+          <?php if (!empty($entrada['factura_doc'])): ?>
+            <a href="<?= htmlspecialchars($entrada['factura_doc']) ?>" target="_blank" rel="noopener" class="factura-doc-ver-link">
+              <?= preg_match('/\.pdf$/i', $entrada['factura_doc']) ? '(Ver PDF)' : '(Ver imagen)' ?>
+            </a>
+          <?php endif; ?>
+        </span>
         <span><strong>Proveedor:</strong> <?= htmlspecialchars($entrada['proveedor_nombre'] ?? '—') ?></span>
         <span><strong>Quien recibe:</strong> <?= htmlspecialchars($entrada['quien_recibe_nombre'] ?? '—') ?></span>
         <span><strong>Fecha:</strong> <?= htmlspecialchars($entrada['fecha']) ?></span>

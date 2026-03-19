@@ -37,7 +37,7 @@ $errorLinea = isset($_GET['error_linea']) && $_GET['error_linea'] === '1';
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= htmlspecialchars($titulo) ?> - Sistema de Almacén</title>
   <link rel="icon" type="image/webp" href="assets/css/img/logo_cecyte_grande.webp">
-  <link rel="stylesheet" href="assets/css/style.css?v=12">
+  <link rel="stylesheet" href="assets/css/style.css?v=13">
 </head>
 <body class="pagina-detalle-transaccion">
   <div class="container">
@@ -103,7 +103,21 @@ $errorLinea = isset($_GET['error_linea']) && $_GET['error_linea'] === '1';
             </div>
             <div class="detalle-meta-item">
               <span class="detalle-meta-label">Factura / Orden</span>
-              <span class="detalle-meta-value"><?= htmlspecialchars($transaccion['factura'] ?? '—') ?></span>
+              <span class="detalle-meta-value">
+                <?= htmlspecialchars($transaccion['factura'] ?? '—') ?>
+                <?php if (!empty($transaccion['factura_doc'])): ?>
+                  <?php $esPdfVT = preg_match('/\.pdf$/i', $transaccion['factura_doc']); ?>
+                  <a href="<?= htmlspecialchars($transaccion['factura_doc']) ?>" target="_blank" rel="noopener" class="factura-doc-ver-link" title="Ver documento adjunto">
+                    <?php if ($esPdfVT): ?>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                      PDF
+                    <?php else: ?>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                      Imagen
+                    <?php endif; ?>
+                  </a>
+                <?php endif; ?>
+              </span>
             </div>
             <div class="detalle-meta-item">
               <span class="detalle-meta-label">Proveedor</span>

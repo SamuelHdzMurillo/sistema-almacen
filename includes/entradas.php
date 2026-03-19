@@ -16,8 +16,9 @@ function generarReferenciaEntrada(): string {
 function listarEntradas(int $limite = 50, ?int $almacenId = null): array {
     $pdo = getDB();
     $almacenId = $almacenId !== null ? (int)$almacenId : getAlmacenActivo();
-    $stmt = $pdo->prepare('
-        SELECT e.id, e.referencia, e.factura, e.fecha, e.estado, e.created_at, e.updated_at, e.created_by,
+    $limite = max(1, (int)$limite);
+    $stmt = $pdo->prepare("
+        SELECT e.id, e.referencia, e.factura, e.factura_doc, e.fecha, e.estado, e.created_at, e.updated_at, e.created_by,
                u.nombre AS created_by_nombre, prov.nombre AS proveedor_nombre, qr.nombre AS quien_recibe_nombre
         FROM entradas e
         LEFT JOIN usuarios u ON u.id = e.created_by
@@ -25,9 +26,9 @@ function listarEntradas(int $limite = 50, ?int $almacenId = null): array {
         LEFT JOIN catalogo_quien_recibe_entrada qr ON qr.id = e.quien_recibe_id
         WHERE e.almacen_id = ?
         ORDER BY e.created_at DESC
-        LIMIT ?
-    ');
-    $stmt->execute([$almacenId, $limite]);
+        LIMIT {$limite}
+    ");
+    $stmt->execute([$almacenId]);
     return $stmt->fetchAll();
 }
 
@@ -35,7 +36,7 @@ function obtenerEntradaConDetalle(int $id, ?int $almacenId = null): ?array {
     $pdo = getDB();
     $almacenId = $almacenId !== null ? (int)$almacenId : getAlmacenActivo();
     $stmt = $pdo->prepare('
-        SELECT e.id, e.referencia, e.factura, e.fecha, e.estado, e.created_at, e.updated_at, e.created_by,
+        SELECT e.id, e.referencia, e.factura, e.factura_doc, e.fecha, e.estado, e.created_at, e.updated_at, e.created_by,
                e.proveedor_id, e.quien_recibe_id,
                u.nombre AS created_by_nombre,
                prov.nombre AS proveedor_nombre,
@@ -68,7 +69,8 @@ function crearEntrada(
     array $lineas,
     ?string $factura = null,
     ?int $usuarioId = null,
-    ?int $almacenId = null
+    ?int $almacenId = null,
+    ?string $facturaDoc = null
 ): int {
     $pdo = getDB();
     $almacenId = $almacenId !== null ? (int)$almacenId : getAlmacenActivo();
@@ -76,10 +78,10 @@ function crearEntrada(
     $pdo->beginTransaction();
     try {
         $stmt = $pdo->prepare('
-            INSERT INTO entradas (referencia, factura, fecha, proveedor_id, quien_recibe_id, almacen_id, estado, created_by)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO entradas (referencia, factura, factura_doc, fecha, proveedor_id, quien_recibe_id, almacen_id, estado, created_by)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ');
-        $stmt->execute([$ref, $factura, $fecha, $proveedorId, $quienRecibeId, $almacenId, 'completada', $usuarioId]);
+        $stmt->execute([$ref, $factura, $facturaDoc, $fecha, $proveedorId, $quienRecibeId, $almacenId, 'completada', $usuarioId]);
         $entradaId = (int) $pdo->lastInsertId();
         $stmt2 = $pdo->prepare('INSERT INTO detalle_entradas (entrada_id, producto_id, cantidad, created_by) VALUES (?, ?, ?, ?)');
         foreach ($lineas as $l) {
@@ -92,6 +94,43 @@ function crearEntrada(
         $pdo->rollBack();
         throw $e;
     }
+}
+
+/**
+ * Lista entradas que tienen documento de factura adjunto.
+ * Permite buscar por folio de factura, referencia o proveedor.
+ */
+function listarEntradasConDocumento(int $limite = 100, ?string $busqueda = null, ?int $almacenId = null): array {
+    $pdo = getDB();
+    $almacenId = $almacenId !== null ? (int)$almacenId : getAlmacenActivo();
+    $params = [$almacenId];
+    $where  = 'e.almacen_id = ? AND e.factura_doc IS NOT NULL AND e.factura_doc != \'\'';
+
+    if ($busqueda !== null && $busqueda !== '') {
+        $like = '%' . $busqueda . '%';
+        $where .= ' AND (e.factura LIKE ? OR e.referencia LIKE ? OR prov.nombre LIKE ?)';
+        $params[] = $like;
+        $params[] = $like;
+        $params[] = $like;
+    }
+
+    $limite = max(1, (int)$limite);
+    $stmt = $pdo->prepare("
+        SELECT e.id, e.referencia, e.factura, e.factura_doc, e.fecha, e.estado,
+               e.created_at, e.created_by,
+               u.nombre   AS created_by_nombre,
+               prov.nombre AS proveedor_nombre,
+               qr.nombre   AS quien_recibe_nombre
+        FROM entradas e
+        LEFT JOIN usuarios u ON u.id = e.created_by
+        LEFT JOIN catalogo_proveedor prov ON prov.id = e.proveedor_id
+        LEFT JOIN catalogo_quien_recibe_entrada qr ON qr.id = e.quien_recibe_id
+        WHERE {$where}
+        ORDER BY e.fecha DESC, e.id DESC
+        LIMIT {$limite}
+    ");
+    $stmt->execute($params);
+    return $stmt->fetchAll();
 }
 
 function totalEntradasEsteMes(?int $almacenId = null): int {
@@ -181,7 +220,9 @@ function actualizarEntrada(
     ?string $factura,
     ?int $usuarioId,
     string $razon,
-    ?int $almacenId = null
+    ?int $almacenId = null,
+    ?string $facturaDoc = null,
+    bool $quitarDoc = false
 ): int {
     $almacenId = $almacenId !== null ? (int)$almacenId : getAlmacenActivo();
     $transaccionVieja = obtenerEntradaConDetalle($entradaId, $almacenId);
@@ -200,8 +241,19 @@ function actualizarEntrada(
 
     $oldFecha = (string)($transaccionVieja['fecha'] ?? '');
     $oldFactura = $transaccionVieja['factura'] ?? null;
+    $oldFacturaDoc = $transaccionVieja['factura_doc'] ?? null;
     $oldProveedorId = (int)($transaccionVieja['proveedor_id'] ?? 0);
     $oldQuienRecibeId = (int)($transaccionVieja['quien_recibe_id'] ?? 0);
+
+    // Determinar la ruta del documento resultante tras la actualización
+    if ($facturaDoc !== null) {
+        // Se subió un nuevo archivo; el anterior se eliminará al final
+        $nuevoDoc = $facturaDoc;
+    } elseif ($quitarDoc) {
+        $nuevoDoc = null;
+    } else {
+        $nuevoDoc = $oldFacturaDoc;
+    }
 
     $oldTotalesPorProducto = [];
     foreach (($transaccionVieja['detalle'] ?? []) as $d) {
@@ -252,10 +304,10 @@ function actualizarEntrada(
 
         $stmt = $pdo->prepare('
             UPDATE entradas
-            SET fecha = ?, factura = ?, proveedor_id = ?, quien_recibe_id = ?
+            SET fecha = ?, factura = ?, factura_doc = ?, proveedor_id = ?, quien_recibe_id = ?
             WHERE id = ? AND almacen_id = ? AND estado != ?
         ');
-        $stmt->execute([$fecha, $factura, $proveedorId, $quienRecibeId, $entradaId, $almacenId, 'cancelada']);
+        $stmt->execute([$fecha, $factura, $nuevoDoc, $proveedorId, $quienRecibeId, $entradaId, $almacenId, 'cancelada']);
 
         $stmtDel = $pdo->prepare('DELETE FROM detalle_entradas WHERE entrada_id = ?');
         $stmtDel->execute([$entradaId]);
@@ -269,6 +321,12 @@ function actualizarEntrada(
         }
 
         $pdo->commit();
+
+        // Eliminar archivo anterior del disco si fue reemplazado o quitado
+        if (($facturaDoc !== null || $quitarDoc) && $oldFacturaDoc) {
+            require_once __DIR__ . '/upload_factura.php';
+            eliminarArchivoFactura($oldFacturaDoc);
+        }
     } catch (Exception $e) {
         $pdo->rollBack();
         throw $e;

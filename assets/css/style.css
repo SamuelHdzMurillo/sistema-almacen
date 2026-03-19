@@ -2738,3 +2738,378 @@ body.login-page {
     justify-content: center;
   }
 }
+
+/* ── Documento adjunto de factura ──────────────────────────────────────── */
+.form-hint-inline {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--color-text-muted, #6b7280);
+  margin-left: 0.25rem;
+}
+
+.factura-doc-file-input {
+  display: block;
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.9rem;
+  border: 1px dashed var(--color-border, #d1d5db);
+  border-radius: 6px;
+  background: var(--color-bg-input, #f9fafb);
+  cursor: pointer;
+  margin-top: 0.35rem;
+}
+.factura-doc-file-input:hover {
+  border-color: var(--color-primary, #2563eb);
+}
+
+.factura-doc-actual {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+  padding: 0.55rem 0.75rem;
+  background: var(--color-bg-card, #f3f4f6);
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  transition: opacity 0.2s;
+}
+
+.factura-doc-thumb {
+  display: block;
+  max-width: 90px;
+  max-height: 90px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border, #d1d5db);
+  object-fit: cover;
+  cursor: zoom-in;
+}
+
+.factura-doc-preview-link {
+  display: inline-block;
+  line-height: 0;
+}
+
+.factura-doc-pdf-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.factura-doc-quitar-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted, #6b7280);
+  cursor: pointer;
+  user-select: none;
+  margin-left: auto;
+}
+.factura-doc-quitar-label input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.factura-doc-preview-nueva {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+}
+
+.factura-doc-pdf-badge {
+  display: inline-block;
+  padding: 0.35rem 0.7rem;
+  background: #dbeafe;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #1d4ed8;
+}
+
+.factura-doc-preview-nombre {
+  font-size: 0.82rem;
+  color: var(--color-text-muted, #6b7280);
+}
+
+/* Enlace "Ver documento" en detalle de transacción y recibo */
+.factura-doc-ver-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-primary, #2563eb);
+  text-decoration: none;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-left: 0.5rem;
+  vertical-align: middle;
+  transition: background 0.15s;
+}
+.factura-doc-ver-link:hover {
+  background: #eff6ff;
+}
+
+@media print {
+  .no-print { display: none !important; }
+}
+
+/* ── Página de Facturas ────────────────────────────────────────────────── */
+.facturas-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.facturas-search-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 220px;
+}
+
+.facturas-search-input {
+  flex: 1;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background: var(--color-bg-input, #fff);
+  color: var(--color-text, #111827);
+}
+.facturas-search-input:focus {
+  outline: none;
+  border-color: var(--color-primary, #2563eb);
+  box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+}
+
+.facturas-contador {
+  font-size: 0.85rem;
+  color: var(--color-text-muted, #6b7280);
+  white-space: nowrap;
+}
+
+/* Galería de tarjetas */
+.facturas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 1.25rem;
+}
+
+.facturas-card {
+  background: var(--color-bg-card, #fff);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  transition: box-shadow 0.18s, transform 0.18s;
+}
+.facturas-card:hover {
+  box-shadow: 0 4px 16px rgba(37,99,235,.13);
+  transform: translateY(-2px);
+}
+
+/* Área del thumb */
+.facturas-card-thumb-link {
+  display: block;
+  background: #f3f4f6;
+  line-height: 0;
+  overflow: hidden;
+  height: 175px;
+}
+.facturas-card-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.22s;
+}
+.facturas-card-thumb-link:hover .facturas-card-thumb {
+  transform: scale(1.04);
+}
+
+.facturas-card-pdf-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  color: #2563eb;
+  text-decoration: none;
+  transition: background 0.18s;
+}
+.facturas-card-thumb-link:hover .facturas-card-pdf-placeholder {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+}
+.facturas-card-pdf-placeholder svg {
+  width: 48px;
+  height: 48px;
+  opacity: 0.85;
+}
+.facturas-card-pdf-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #1d4ed8;
+}
+
+/* Cuerpo de la tarjeta */
+.facturas-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.85rem 1rem;
+  flex: 1;
+}
+
+.facturas-card-folio {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.facturas-card-folio-valor {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text, #111827);
+  flex: 1;
+}
+.facturas-card-folio-vacio {
+  font-size: 0.85rem;
+  color: var(--color-text-muted, #9ca3af);
+  font-style: italic;
+  flex: 1;
+}
+
+.facturas-card-meta {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+.facturas-meta-label {
+  color: var(--color-text-muted, #6b7280);
+  padding: 2px 8px 2px 0;
+  white-space: nowrap;
+  vertical-align: top;
+  width: 75px;
+}
+.facturas-meta-valor {
+  color: var(--color-text, #111827);
+  padding: 2px 0;
+}
+.facturas-meta-por {
+  font-size: 0.78rem;
+  color: var(--color-text-muted, #9ca3af);
+}
+
+.facturas-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-border, #f3f4f6);
+}
+
+/* Estado vacío */
+.facturas-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 4rem 2rem;
+  text-align: center;
+  color: var(--color-text-muted, #6b7280);
+}
+.facturas-empty-icon {
+  width: 56px;
+  height: 56px;
+  opacity: 0.35;
+}
+.facturas-empty p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* Lightbox */
+.facturas-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.facturas-lightbox-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.78);
+  cursor: zoom-out;
+}
+.facturas-lightbox-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 92vw;
+  max-height: 92vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.facturas-lightbox-img {
+  max-width: 90vw;
+  max-height: 88vh;
+  border-radius: 8px;
+  box-shadow: 0 8px 48px rgba(0,0,0,.5);
+  display: block;
+}
+.facturas-lightbox-close {
+  position: absolute;
+  top: -18px;
+  right: -18px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #fff;
+  color: #111;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+  z-index: 2;
+  transition: background 0.15s;
+}
+.facturas-lightbox-close:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+@media (max-width: 640px) {
+  .facturas-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .facturas-search-form {
+    flex-wrap: wrap;
+  }
+  .facturas-grid {
+    grid-template-columns: 1fr;
+  }
+}

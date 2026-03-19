@@ -5,6 +5,7 @@ require_once __DIR__ . '/includes/entradas.php';
 require_once __DIR__ . '/includes/productos.php';
 require_once __DIR__ . '/includes/inventario.php';
 require_once __DIR__ . '/includes/catalogos_entrada.php';
+require_once __DIR__ . '/includes/upload_factura.php';
 
 $mensaje = '';
 $error = '';
@@ -43,6 +44,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!empty($proveedorNuevo)) $proveedorId = obtenerOcrearProveedor($proveedorNuevo);
     if (!empty($quienRecibeNuevo)) $quienRecibeId = obtenerOcrearQuienRecibeEntrada($quienRecibeNuevo);
     $razonModificacion = trim((string)($_POST['razon_modificacion'] ?? ''));
+
+    // Procesar archivo de factura adjunto (opcional)
+    $facturaDoc = null;
+    $quitarDoc = isset($_POST['quitar_factura_doc']) && $_POST['quitar_factura_doc'] === '1';
+    $docAnterior = $entradaExistente['factura_doc'] ?? null;
+    if (isset($_FILES['factura_doc']) && (int)($_FILES['factura_doc']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+        try {
+            $facturaDoc = procesarArchivoFactura($_FILES['factura_doc'], $quitarDoc ? $docAnterior : null);
+            $docAnterior = null; // ya fue eliminado dentro del helper si $quitarDoc
+        } catch (Exception $e) {
+            $error = $e->getMessage();
+        }
+    }
     $lineas = [];
     $huboErrorAltaRapidaProducto = false;
     if (!empty($_POST['producto_id']) && is_array($_POST['producto_id'])) {
@@ -96,7 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
-    if (!$huboErrorAltaRapidaProducto) {
+    if (!$huboErrorAltaRapidaProducto && $error === '') {
         if ($proveedorId <= 0) {
             $error = 'Seleccione o indique el proveedor.';
         } elseif ($quienRecibeId <= 0) {
@@ -124,11 +138,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $error = 'Indique una razón para guardar los cambios.';
                         throw new Exception('__RAZON_VACIA__');
                     }
-                    actualizarEntrada($editId, $fecha, $proveedorId, $quienRecibeId, $lineas, $factura, $usuarioId, $razonModificacion);
+                    actualizarEntrada($editId, $fecha, $proveedorId, $quienRecibeId, $lineas, $factura, $usuarioId, $razonModificacion, null, $facturaDoc, $quitarDoc);
                     header('Location: nueva-entrada.php?id=' . $editId . '&modificado=1');
                     exit;
                 } else {
-                    $entradaId = crearEntrada($fecha, $proveedorId, $quienRecibeId, $lineas, $factura, $usuarioId);
+                    $entradaId = crearEntrada($fecha, $proveedorId, $quienRecibeId, $lineas, $factura, $usuarioId, null, $facturaDoc);
                     header('Location: recibo-entrada.php?id=' . $entradaId);
                     exit;
                 }
@@ -202,7 +216,7 @@ $modificacionesParaVista = $mostrarTodas ? $historialModificaciones : array_valu
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nueva entrada - Sistema de Almacén</title>
   <link rel="icon" type="image/webp" href="assets/css/img/logo_cecyte_grande.webp">
-  <link rel="stylesheet" href="assets/css/style.css?v=12">
+  <link rel="stylesheet" href="assets/css/style.css?v=13">
 </head>
 <body class="pagina-nueva-entrada">
   <div class="container">
@@ -227,7 +241,7 @@ $modificacionesParaVista = $mostrarTodas ? $historialModificaciones : array_valu
     </header>
     <?php if ($error): ?><div class="alert alert-error"><?= htmlspecialchars($error) ?></div><?php endif; ?>
 
-    <form method="post" action="<?= htmlspecialchars($formAction) ?>" id="formEntrada" onsubmit="return confirm('¿Está seguro de que desea continuar y guardar los cambios?');">
+    <form method="post" action="<?= htmlspecialchars($formAction) ?>" id="formEntrada" enctype="multipart/form-data" onsubmit="return confirm('¿Está seguro de que desea continuar y guardar los cambios?');">
       <div class="form-layout-dual">
       <div class="form-card form-card--entrada form-card--datos">
         <div class="form-card-header">
@@ -242,6 +256,38 @@ $modificacionesParaVista = $mostrarTodas ? $historialModificaciones : array_valu
           <div class="form-group">
             <label for="factura">Factura / Orden</label>
             <input type="text" name="factura" id="factura" value="<?= htmlspecialchars($facturaValor) ?>" placeholder="Ej. F-1234 (opcional)" maxlength="50">
+          </div>
+          <div class="form-group form-group--full">
+            <label for="factura_doc">Documento de factura <span class="form-hint-inline">(imagen o PDF, máx. 8 MB)</span></label>
+            <?php
+              $docActual = $entradaExistente['factura_doc'] ?? null;
+              $esImagen  = $docActual && preg_match('/\.(webp|jpg|jpeg|png|gif)$/i', $docActual);
+              $esPdf     = $docActual && preg_match('/\.pdf$/i', $docActual);
+            ?>
+            <?php if ($docActual): ?>
+              <div class="factura-doc-actual" id="facturaDocActual">
+                <?php if ($esImagen): ?>
+                  <a href="<?= htmlspecialchars($docActual) ?>" target="_blank" rel="noopener" class="factura-doc-preview-link">
+                    <img src="<?= htmlspecialchars($docActual) ?>" alt="Documento adjunto" class="factura-doc-thumb">
+                  </a>
+                <?php else: ?>
+                  <a href="<?= htmlspecialchars($docActual) ?>" target="_blank" rel="noopener" class="btn btn-secondary btn-sm factura-doc-pdf-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    Ver PDF adjunto
+                  </a>
+                <?php endif; ?>
+                <label class="factura-doc-quitar-label">
+                  <input type="checkbox" name="quitar_factura_doc" value="1" id="quitarFacturaDoc"> Quitar documento adjunto
+                </label>
+              </div>
+            <?php endif; ?>
+            <input type="file" name="factura_doc" id="factura_doc_input" accept="image/jpeg,image/png,image/gif,image/webp,application/pdf" class="factura-doc-file-input">
+            <div id="facturaDocPreview" class="factura-doc-preview-nueva" style="display:none;">
+              <img id="facturaDocPreviewImg" src="" alt="Vista previa" class="factura-doc-thumb">
+              <span id="facturaDocPreviewPdf" class="factura-doc-pdf-badge" style="display:none;">PDF seleccionado</span>
+              <span id="facturaDocPreviewNombre" class="factura-doc-preview-nombre"></span>
+            </div>
+            <span class="form-hint">Se aceptan imágenes (JPG, PNG, WEBP) o PDF. Las imágenes se optimizan automáticamente para ahorrar espacio.</span>
           </div>
           <div class="form-group form-group--full">
             <label for="proveedor_id">Proveedor</label>
@@ -664,6 +710,50 @@ $modificacionesParaVista = $mostrarTodas ? $historialModificaciones : array_valu
     document.getElementById('quien_recibe_id').addEventListener('change', function() { toggleNuevo('quien_recibe_id', 'quien_recibe_nuevo'); });
     toggleNuevo('proveedor_id', 'proveedor_nuevo');
     toggleNuevo('quien_recibe_id', 'quien_recibe_nuevo');
+
+    // Vista previa del documento de factura
+    (function() {
+      var fileInput  = document.getElementById('factura_doc_input');
+      var preview    = document.getElementById('facturaDocPreview');
+      var previewImg = document.getElementById('facturaDocPreviewImg');
+      var previewPdf = document.getElementById('facturaDocPreviewPdf');
+      var previewNom = document.getElementById('facturaDocPreviewNombre');
+      var docActual  = document.getElementById('facturaDocActual');
+      var chkQuitar  = document.getElementById('quitarFacturaDoc');
+
+      if (!fileInput) return;
+
+      fileInput.addEventListener('change', function() {
+        var file = this.files[0];
+        if (!file) { preview.style.display = 'none'; return; }
+
+        previewNom.textContent = file.name + ' (' + (file.size / 1024).toFixed(0) + ' KB)';
+
+        if (file.type === 'application/pdf') {
+          previewImg.style.display = 'none';
+          previewPdf.style.display = 'inline-block';
+        } else {
+          previewPdf.style.display = 'none';
+          var reader = new FileReader();
+          reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            previewImg.style.display = 'block';
+          };
+          reader.readAsDataURL(file);
+        }
+        preview.style.display = 'flex';
+
+        // Si se selecciona un archivo nuevo, desmarcar "quitar"
+        if (chkQuitar) chkQuitar.checked = false;
+      });
+
+      // Ocultar doc actual si se marca "quitar"
+      if (chkQuitar && docActual) {
+        chkQuitar.addEventListener('change', function() {
+          docActual.style.opacity = this.checked ? '0.35' : '1';
+        });
+      }
+    })();
   </script>
 </body>
 </html>
