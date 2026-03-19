@@ -14,7 +14,7 @@ $total    = count($entradas);
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Facturas - Sistema de Almacén</title>
   <link rel="icon" type="image/webp" href="assets/css/img/logo_cecyte_grande.webp">
-  <link rel="stylesheet" href="assets/css/style.css?v=13">
+  <link rel="stylesheet" href="assets/css/style.css?v=15">
   <style>
     /* Miniatura de factura en tabla */
     .fac-thumb {

@@ -9,7 +9,7 @@ requerirLogin();
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nueva transacción - Sistema de Almacén</title>
   <link rel="icon" type="image/webp" href="assets/css/img/logo_cecyte_grande.webp">
-  <link rel="stylesheet" href="assets/css/style.css?v=13">
+  <link rel="stylesheet" href="assets/css/style.css?v=15">
 </head>
 <body>
   <div class="container">
@@ -19,7 +19,9 @@ requerirLogin();
         <span>Sistema de Almacén</span>
         <span class="logo-sub">Nueva transacción</span>
       </div>
-      <a href="logout.php" class="btn btn-secondary">Salir</a>
+      <div class="header-actions">
+        <a href="logout.php" class="btn btn-secondary">Salir</a>
+      </div>
     </header>
     <?php include __DIR__ . '/includes/nav.php'; ?>
     <div class="form-card">

@@ -25,6 +25,7 @@ if (!isset($nav_activo)) {
 $usuarioNombreSesion = (string) ($_SESSION['usuario_nombre'] ?? '');
 $usuarioIdSesion = (int) ($_SESSION['usuario_id'] ?? 0);
 $esAdmin = ($usuarioNombreSesion === 'Administrador') || ($usuarioIdSesion === 1);
+$nombreAlmacenActivo = getNombreAlmacenActivo();
 
 $nav_items = [
     'inicio' => ['url' => 'index.php', 'label' => 'Inicio'],
@@ -49,6 +50,20 @@ if ($esAdmin) {
     <?php endforeach; ?>
   </nav>
 
+  <?php if ($usuarioNombreSesion !== ''): ?>
+    <div class="header-user-info" id="header-user-info">
+      <span class="header-user-avatar" aria-hidden="true">
+        <?= htmlspecialchars(mb_substr($usuarioNombreSesion, 0, 1)) ?>
+      </span>
+      <div class="header-user-details">
+        <span class="header-user-name"><?= htmlspecialchars($usuarioNombreSesion) ?></span>
+        <?php if ($nombreAlmacenActivo !== ''): ?>
+          <span class="header-user-almacen"><?= htmlspecialchars($nombreAlmacenActivo) ?></span>
+        <?php endif; ?>
+      </div>
+    </div>
+  <?php endif; ?>
+
   <?php if ($esAdmin): ?>
     <?php
       $almacenActivo = (int) (getAlmacenActivo() ?? 0);
@@ -70,9 +85,9 @@ if ($esAdmin) {
     </div>
     <script>
       (function() {
+        var actions = document.querySelector('.header-actions');
         // Mueve el selector de almacén al header (.header-actions) automáticamente
         var box = document.getElementById('almacen-selector-box');
-        var actions = document.querySelector('.header-actions');
         if (box && actions) {
           actions.insertBefore(box, actions.firstChild);
         }
@@ -92,4 +107,14 @@ if ($esAdmin) {
       })();
     </script>
   <?php endif; ?>
+  <script>
+    (function() {
+      // Mueve la info de usuario al header (.header-actions) siempre
+      var userInfo = document.getElementById('header-user-info');
+      var actions = document.querySelector('.header-actions');
+      if (userInfo && actions) {
+        actions.insertBefore(userInfo, actions.firstChild);
+      }
+    })();
+  </script>
 </div>

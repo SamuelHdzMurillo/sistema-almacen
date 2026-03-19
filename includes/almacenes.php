@@ -92,3 +92,13 @@ function getAlmacenActivo(): int {
     return (int)($_SESSION['almacen_id'] ?? 0);
 }
 
+function getNombreAlmacenActivo(): string {
+    $id = getAlmacenActivo();
+    if ($id <= 0) return '';
+    $pdo = getDB();
+    $stmt = $pdo->prepare('SELECT nombre FROM almacenes WHERE id = ? LIMIT 1');
+    $stmt->execute([$id]);
+    $row = $stmt->fetch();
+    return $row ? (string)$row['nombre'] : '';
+}
+
