@@ -54,6 +54,9 @@ $vista = isset($_GET['vista']) && $_GET['vista'] === 'mes' ? 'mes' : 'actual';
             <p class="inventario-page-subtitulo"><?= $vista === 'actual' ? 'Stock en existencia por producto' : 'Resumen por mes · ' . htmlspecialchars($periodoTexto) ?></p>
           </div>
           <div class="inventario-page-header-accion">
+            <?php if (esAdminSesionAlmacen()): ?>
+            <a href="inventario-global.php" class="btn btn-secondary">Inventario global</a>
+            <?php endif; ?>
             <?php if ($vista === 'actual'): ?>
             <a href="imprimir-inventario-actual.php?hoja=1" target="_blank" rel="noopener" class="btn btn-primary btn-imprimir-recibo">
               Imprimir inventario actual

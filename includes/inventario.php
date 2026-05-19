@@ -60,3 +60,89 @@ function capacidadTotal(?int $almacenId = null): array {
     $pct = 0;
     return ['capacidad' => 0, 'items' => $totalItems, 'porcentaje' => $pct];
 }
+
+/**
+ * Matriz de stock: cada producto con cantidad por almacén y total general.
+ * Solo para vista administrativa global.
+ */
+function inventarioGlobalMatriz(): array {
+    $pdo = getDB();
+    $almacenes = listarAlmacenes();
+    $productos = $pdo->query('SELECT id, codigo, nombre, unidad FROM productos ORDER BY nombre')->fetchAll();
+
+    $stock = [];
+    foreach ($productos as $p) {
+        $pid = (int) $p['id'];
+        $stock[$pid] = [];
+        foreach ($almacenes as $a) {
+            $stock[$pid][(int) $a['id']] = 0;
+        }
+    }
+
+    $sqlEntradas = "
+        SELECT de.producto_id, e.almacen_id, COALESCE(SUM(de.cantidad), 0) AS cant
+        FROM detalle_entradas de
+        JOIN entradas e ON e.id = de.entrada_id
+        WHERE e.estado != 'cancelada'
+          AND (de.estado = 'activa' OR de.estado IS NULL)
+        GROUP BY de.producto_id, e.almacen_id
+    ";
+    foreach ($pdo->query($sqlEntradas) as $row) {
+        $pid = (int) $row['producto_id'];
+        $aid = (int) $row['almacen_id'];
+        if (isset($stock[$pid][$aid])) {
+            $stock[$pid][$aid] += (int) $row['cant'];
+        }
+    }
+
+    $sqlSalidas = "
+        SELECT ds.producto_id, s.almacen_id, COALESCE(SUM(ds.cantidad), 0) AS cant
+        FROM detalle_salidas ds
+        JOIN salidas s ON s.id = ds.salida_id
+        WHERE s.estado != 'cancelada'
+        GROUP BY ds.producto_id, s.almacen_id
+    ";
+    foreach ($pdo->query($sqlSalidas) as $row) {
+        $pid = (int) $row['producto_id'];
+        $aid = (int) $row['almacen_id'];
+        if (isset($stock[$pid][$aid])) {
+            $stock[$pid][$aid] -= (int) $row['cant'];
+        }
+    }
+
+    $totalesAlmacen = [];
+    foreach ($almacenes as $a) {
+        $totalesAlmacen[(int) $a['id']] = 0;
+    }
+
+    $filas = [];
+    $totalGeneral = 0;
+    foreach ($productos as $p) {
+        $pid = (int) $p['id'];
+        $porAlmacen = [];
+        $totalFila = 0;
+        foreach ($almacenes as $a) {
+            $aid = (int) $a['id'];
+            $qty = $stock[$pid][$aid] ?? 0;
+            $porAlmacen[$aid] = $qty;
+            $totalFila += $qty;
+            $totalesAlmacen[$aid] += $qty;
+        }
+        $totalGeneral += $totalFila;
+        $filas[] = [
+            'id' => $pid,
+            'codigo' => $p['codigo'],
+            'nombre' => $p['nombre'],
+            'unidad' => $p['unidad'] ?? 'und',
+            'por_almacen' => $porAlmacen,
+            'total' => $totalFila,
+        ];
+    }
+
+    return [
+        'almacenes' => $almacenes,
+        'filas' => $filas,
+        'totales_almacen' => $totalesAlmacen,
+        'total_general' => $totalGeneral,
+    ];
+}

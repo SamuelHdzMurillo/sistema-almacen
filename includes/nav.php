@@ -12,6 +12,7 @@ if (!isset($nav_activo)) {
         'entregas-plantel-persona' => 'transacciones',
         'almacenes-admin' => 'almacenes-admin',
         'inventario' => 'inventario',
+        'inventario-global' => 'inventario-global',
         'nueva-entrada' => 'nueva-entrada',
         'nueva-salida' => 'nueva-salida',
         'productos' => 'productos',
@@ -39,6 +40,7 @@ $nav_items = [
 ];
 
 if ($esAdmin) {
+    $nav_items['inventario-global'] = ['url' => 'inventario-global.php', 'label' => 'Inventario global'];
     $nav_items['logs'] = ['url' => 'ver-logs.php', 'label' => 'Logs'];
     $nav_items['almacenes-admin'] = ['url' => 'almacenes-admin.php', 'label' => 'Almacenes'];
 }
