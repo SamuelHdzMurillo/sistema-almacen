@@ -14,6 +14,10 @@ if ($id <= 0) {
     exit;
 }
 
+$entradaLog = obtenerEntradaConDetalle($id);
 $ok = cancelarEntrada($id);
+if ($ok && $entradaLog) {
+    registrarActividad('CANCELAR_ENTRADA', contextoDesdeEntrada($entradaLog), '/cancelar-entrada.php');
+}
 header('Location: transacciones.php?' . ($ok ? 'cancelado=1' : 'error=cancelar'));
 exit;

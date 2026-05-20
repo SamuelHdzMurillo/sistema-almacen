@@ -17,6 +17,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['crear'])) {
         try {
             $usuarioId = isset($_SESSION['usuario_id']) ? (int)$_SESSION['usuario_id'] : null;
             crearProducto(['nombre' => $nombre, 'codigo' => $codigo, 'descripcion' => trim($_POST['descripcion'] ?? ''), 'unidad' => $unidad], $usuarioId);
+            $detProd = $nombre . ($codigo ? ' (código ' . $codigo . ')' : '') . ' — unidad ' . $unidad;
+            registrarActividad('CREAR_PRODUCTO', [
+                'detalle' => $detProd,
+                'productos' => [['nombre' => $nombre, 'cantidad' => 0, 'unidad' => $unidad, 'tipo' => 'catalogo']],
+            ], '/productos.php');
             $mensaje = 'Producto creado correctamente.';
         } catch (Exception $e) {
             $mensaje = 'Error: ' . $e->getMessage();

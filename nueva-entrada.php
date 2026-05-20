@@ -139,10 +139,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         throw new Exception('__RAZON_VACIA__');
                     }
                     actualizarEntrada($editId, $fecha, $proveedorId, $quienRecibeId, $lineas, $factura, $usuarioId, $razonModificacion, null, $facturaDoc, $quitarDoc);
+                    $entradaLog = obtenerEntradaConDetalle($editId);
+                    if ($entradaLog) {
+                        $ctxLog = contextoDesdeEntrada($entradaLog);
+                        $ctxLog['motivo'] = $razonModificacion;
+                        registrarActividad('MODIFICAR_ENTRADA', $ctxLog, '/nueva-entrada.php?id=' . $editId);
+                    }
                     header('Location: nueva-entrada.php?id=' . $editId . '&modificado=1');
                     exit;
                 } else {
                     $entradaId = crearEntrada($fecha, $proveedorId, $quienRecibeId, $lineas, $factura, $usuarioId, null, $facturaDoc);
+                    $entradaLog = obtenerEntradaConDetalle($entradaId);
+                    if ($entradaLog) {
+                        registrarActividad('REGISTRAR_ENTRADA', contextoDesdeEntrada($entradaLog), '/nueva-entrada.php');
+                    }
                     header('Location: recibo-entrada.php?id=' . $entradaId);
                     exit;
                 }

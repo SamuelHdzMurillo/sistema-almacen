@@ -212,9 +212,6 @@ foreach ($rowsRaw as $r) {
     }
 
     $mensaje = (string) ($r['mensaje_legible'] ?? '');
-    if ($mensaje === '') {
-        $mensaje = mensajeActividadLegible($accionInferida, $detalleInferida, $usuarioNombre !== '' ? $usuarioNombre : null, $method, $ruta);
-    }
 
     if ($filtroUsuario !== '') {
         $coincideUsuario = false;
@@ -252,13 +249,57 @@ foreach ($rowsRaw as $r) {
         }
     }
 
+    $contextoGuardado = is_array($r['contexto'] ?? null) ? (array) $r['contexto'] : [];
+    $detalleItems = is_array($r['detalle_items'] ?? null) ? (array) $r['detalle_items'] : [];
+    if ($detalleItems === []) {
+        $enriquecido = enriquecerDetalleParaVisor($accionInferida, $detalleInferida, $postRaw, $contextoGuardado);
+        $detalleItems = $enriquecido['items'];
+        if ($contextoGuardado === [] && $enriquecido['contexto'] !== []) {
+            $contextoGuardado = $enriquecido['contexto'];
+        }
+    }
+    $contextoGuardado['_codigo'] = $accionInferida;
+    if ($mensaje === '' || ($detalleItems !== [] && !str_contains($mensaje, 'ver detalle'))) {
+        $detalleParaMsg = $detalleInferida !== '' ? $detalleInferida : resumenTextoMovimiento($contextoGuardado);
+        $mensaje = mensajeActividadLegible(
+            $accionInferida,
+            $detalleParaMsg,
+            $usuarioNombre !== '' ? $usuarioNombre : null,
+            $method,
+            $ruta,
+            $contextoGuardado
+        );
+    }
+    $tipoMovDetalle = (string) ($contextoGuardado['tipo_movimiento'] ?? '');
+    if ($tipoMovDetalle === '' && str_contains($accionInferida, 'SALIDA')) {
+        $tipoMovDetalle = 'salida';
+    } elseif ($tipoMovDetalle === '') {
+        $tipoMovDetalle = 'entrada';
+    }
+
+    $nombresProductos = [];
+    foreach ($detalleItems as $it) {
+        if (!empty($it['nombre'])) {
+            $nombresProductos[] = (string) $it['nombre'];
+        }
+    }
+
     $tipoAccion = etiquetaAccion($accionInferida);
-    $searchText = implode(' ', [$timestamp, $usuario, $mensaje, $tipoAccion, $detalleInferida, $ruta]);
+    $searchText = implode(' ', array_merge(
+        [$timestamp, $usuario, $mensaje, $tipoAccion, $detalleInferida, $ruta],
+        $nombresProductos,
+        array_filter([
+            $contextoGuardado['proveedor'] ?? '',
+            $contextoGuardado['plantel'] ?? '',
+            $contextoGuardado['referencia'] ?? '',
+        ])
+    ));
     if ($q !== '' && mb_stripos($searchText, $q) === false) {
         continue;
     }
 
     $postMasked = maskSensitiveKeys($postRaw, $sensitiveKeys);
+    $detalleHtml = $detalleItems !== [] ? generarHtmlDetalleActividad($contextoGuardado, $detalleItems) : '';
 
     $rows[] = [
         'timestamp' => $timestamp,
@@ -268,6 +309,8 @@ foreach ($rowsRaw as $r) {
         'tipo' => $tipoAccion,
         'codigo' => $accionInferida,
         'detalle' => $detalleInferida,
+        'detalle_html' => $detalleHtml,
+        'tiene_detalle' => $detalleHtml !== '',
         'method' => $method,
         'ruta' => $ruta,
         'query_string' => $queryString,
@@ -403,6 +446,34 @@ $queryFiltros = static function () use ($modo, $q, $filtroTipo, $filtroUsuario, 
         grid-column: span 2;
       }
     }
+    .log-items-list {
+      margin: 0.35rem 0 0;
+      padding-left: 1.25rem;
+      font-size: 0.92rem;
+    }
+    .log-items-list li {
+      margin-bottom: 0.25rem;
+    }
+    .log-detalle-meta {
+      display: grid;
+      gap: 0.2rem;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+    .log-detalle-titulo-lista {
+      font-weight: 700;
+      font-size: 0.85rem;
+      margin: 0.35rem 0 0.15rem;
+      color: var(--text-primary);
+    }
+    .log-detalle-bloque {
+      margin-top: 0.5rem;
+      padding: 0.65rem 0.75rem;
+      background: #f9fafb;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body>
@@ -532,7 +603,15 @@ $queryFiltros = static function () use ($modo, $q, $filtroTipo, $filtroUsuario, 
                 <td><?= h($r['timestamp'] !== '' ? formatIsoTimestamp($r['timestamp']) : '—') ?></td>
                 <td><strong><?= h($r['usuario']) ?></strong></td>
                 <td><span class="log-tipo <?= h($tipoClass) ?>"><?= h($r['tipo']) ?></span></td>
-                <td class="log-mensaje"><?= h($r['mensaje']) ?></td>
+                <td class="log-mensaje">
+                  <div><?= h($r['mensaje']) ?></div>
+                  <?php if (!empty($r['tiene_detalle'])): ?>
+                    <details class="log-details" style="margin-top:0.45rem;">
+                      <summary>Ver detalle (qué entró / salió)</summary>
+                      <?= $r['detalle_html'] ?>
+                    </details>
+                  <?php endif; ?>
+                </td>
                 <?php if ($modo === 'tecnico'): ?>
                   <td>
                     <details class="log-details">

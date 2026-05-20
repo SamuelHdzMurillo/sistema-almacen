@@ -3,6 +3,8 @@
  * Traduce peticiones HTTP a mensajes legibles para personal no técnico.
  */
 
+require_once __DIR__ . '/../config/database.php';
+
 function nombrePaginaLegible(string $basename): string {
     $map = [
         'index.php' => 'el inicio',
@@ -236,12 +238,394 @@ function etiquetaAccion(string $codigo): string {
 /**
  * Frase completa para mostrar en la tabla principal.
  */
+/** @return array<string, mixed> */
+function contextoDesdeEntrada(array $entrada): array {
+    $productos = [];
+    foreach ($entrada['detalle'] ?? [] as $d) {
+        if (($d['estado'] ?? 'activa') === 'cancelada') {
+            continue;
+        }
+        $cant = (int) ($d['cantidad'] ?? 0);
+        if ($cant <= 0) {
+            continue;
+        }
+        $productos[] = [
+            'nombre' => (string) ($d['producto_nombre'] ?? 'Producto'),
+            'cantidad' => $cant,
+            'unidad' => (string) ($d['unidad'] ?? 'und'),
+            'tipo' => 'entrada',
+        ];
+    }
+    return [
+        'tipo_movimiento' => 'entrada',
+        'movimiento_id' => (int) ($entrada['id'] ?? 0),
+        'referencia' => (string) ($entrada['referencia'] ?? ''),
+        'fecha' => (string) ($entrada['fecha'] ?? ''),
+        'proveedor' => (string) ($entrada['proveedor_nombre'] ?? ''),
+        'quien_recibe' => (string) ($entrada['quien_recibe_nombre'] ?? ''),
+        'factura' => (string) ($entrada['factura'] ?? ''),
+        'productos' => $productos,
+    ];
+}
+
+/** @return array<string, mixed> */
+function contextoDesdeSalida(array $salida): array {
+    $productos = [];
+    foreach ($salida['detalle'] ?? [] as $d) {
+        $cant = (int) ($d['cantidad'] ?? 0);
+        if ($cant <= 0) {
+            continue;
+        }
+        $productos[] = [
+            'nombre' => (string) ($d['producto_nombre'] ?? 'Producto'),
+            'cantidad' => $cant,
+            'unidad' => (string) ($d['unidad'] ?? 'und'),
+            'tipo' => 'salida',
+        ];
+    }
+    return [
+        'tipo_movimiento' => 'salida',
+        'movimiento_id' => (int) ($salida['id'] ?? 0),
+        'referencia' => (string) ($salida['referencia'] ?? ''),
+        'fecha' => (string) ($salida['fecha'] ?? ''),
+        'quien_entrega' => (string) ($salida['nombre_entrega'] ?? ''),
+        'plantel' => (string) ($salida['plantel_nombre'] ?? ''),
+        'receptor' => (string) ($salida['nombre_receptor'] ?? ''),
+        'productos' => $productos,
+    ];
+}
+
+function nombreCatalogoPorId(string $tabla, int $id): string {
+    if ($id <= 0) {
+        return '';
+    }
+    $tablas = [
+        'catalogo_proveedor' => 'proveedor',
+        'catalogo_quien_recibe_entrada' => 'quien_recibe',
+        'catalogo_quien_entrega' => 'quien_entrega',
+        'catalogo_plantel' => 'plantel',
+        'catalogo_receptor' => 'receptor',
+    ];
+    if (!isset($tablas[$tabla])) {
+        return '';
+    }
+    try {
+        $pdo = getDB();
+        $stmt = $pdo->prepare("SELECT nombre FROM {$tabla} WHERE id = ? LIMIT 1");
+        $stmt->execute([$id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return trim((string) ($row['nombre'] ?? ''));
+    } catch (Throwable $e) {
+        return '';
+    }
+}
+
+function nombreProductoPorId(int $id): string {
+    if ($id <= 0) {
+        return '';
+    }
+    try {
+        $pdo = getDB();
+        $stmt = $pdo->prepare('SELECT nombre, unidad FROM productos WHERE id = ? LIMIT 1');
+        $stmt->execute([$id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) {
+            return '';
+        }
+        return trim((string) ($row['nombre'] ?? ''));
+    } catch (Throwable $e) {
+        return '';
+    }
+}
+
+function unidadProductoPorId(int $id): string {
+    if ($id <= 0) {
+        return 'und';
+    }
+    try {
+        $pdo = getDB();
+        $stmt = $pdo->prepare('SELECT unidad FROM productos WHERE id = ? LIMIT 1');
+        $stmt->execute([$id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return trim((string) ($row['unidad'] ?? 'und')) ?: 'und';
+    } catch (Throwable $e) {
+        return 'und';
+    }
+}
+
+/**
+ * Extrae líneas de producto desde POST (entrada o salida).
+ *
+ * @return list<array{nombre: string, cantidad: int, unidad: string, tipo: string}>
+ */
+function productosDesdePost(array $post, string $tipoMovimiento): array {
+    $items = [];
+    $ids = isset($post['producto_id']) && is_array($post['producto_id']) ? $post['producto_id'] : [];
+    $cantidades = isset($post['cantidad']) && is_array($post['cantidad']) ? $post['cantidad'] : [];
+
+    foreach ($ids as $i => $pid) {
+        $cant = (int) ($cantidades[$i] ?? 0);
+        if ($cant <= 0) {
+            continue;
+        }
+        $pid = is_string($pid) ? trim($pid) : (string) $pid;
+        if ($pid === '' || $pid === '0') {
+            continue;
+        }
+
+        if ($pid === 'nuevo') {
+            $nombre = trim((string) ($post['producto_nuevo_nombre'][$i] ?? ''));
+            $unidad = trim((string) ($post['producto_nuevo_unidad'][$i] ?? 'und'));
+            if ($unidad === 'otra') {
+                $unidad = trim((string) ($post['producto_nuevo_unidad_nueva'][$i] ?? 'und'));
+            }
+            if ($nombre === '') {
+                $nombre = 'Producto nuevo';
+            }
+        } else {
+            $idNum = (int) $pid;
+            $nombre = nombreProductoPorId($idNum);
+            if ($nombre === '') {
+                $nombre = 'Producto #' . $idNum;
+            }
+            $unidad = unidadProductoPorId($idNum);
+        }
+
+        $items[] = [
+            'nombre' => $nombre,
+            'cantidad' => $cant,
+            'unidad' => $unidad !== '' ? $unidad : 'und',
+            'tipo' => $tipoMovimiento,
+        ];
+    }
+    return $items;
+}
+
+function resumenTextoMovimiento(array $ctx): string {
+    $partes = [];
+    $ref = trim((string) ($ctx['referencia'] ?? ''));
+    $movId = (int) ($ctx['movimiento_id'] ?? 0);
+    if ($ref !== '') {
+        $partes[] = $ref;
+    } elseif ($movId > 0) {
+        $partes[] = '#' . $movId;
+    }
+
+    $fecha = trim((string) ($ctx['fecha'] ?? ''));
+    if ($fecha !== '') {
+        $partes[] = 'fecha ' . formatearFechaLog($fecha);
+    }
+
+    if (!empty($ctx['proveedor'])) {
+        $partes[] = 'proveedor: ' . $ctx['proveedor'];
+    }
+    if (!empty($ctx['quien_recibe'])) {
+        $partes[] = 'recibe en almacén: ' . $ctx['quien_recibe'];
+    }
+    if (!empty($ctx['quien_entrega'])) {
+        $partes[] = 'entrega: ' . $ctx['quien_entrega'];
+    }
+    if (!empty($ctx['plantel'])) {
+        $partes[] = 'plantel: ' . $ctx['plantel'];
+    }
+    if (!empty($ctx['receptor'])) {
+        $partes[] = 'receptor: ' . $ctx['receptor'];
+    }
+    if (!empty($ctx['factura'])) {
+        $partes[] = 'factura: ' . $ctx['factura'];
+    }
+    if (!empty($ctx['motivo'])) {
+        $partes[] = 'motivo: ' . truncateLogText((string) $ctx['motivo'], 100);
+    }
+
+    $productos = $ctx['productos'] ?? [];
+    if (is_array($productos) && count($productos) > 0) {
+        $n = count($productos);
+        $tipo = ($ctx['tipo_movimiento'] ?? '') === 'salida' ? 'salieron' : 'entraron';
+        $partes[] = $n . ' ' . ($n === 1 ? 'producto' : 'productos') . ' (' . $tipo . ')';
+    }
+
+    return implode(' · ', $partes);
+}
+
+/**
+ * @param list<array{nombre?: string, cantidad?: int, unidad?: string, tipo?: string}> $items
+ */
+/**
+ * HTML del bloque expandible (metadatos + lista de productos).
+ *
+ * @param list<array<string, mixed>> $items
+ * @param array<string, mixed> $ctx
+ */
+function generarHtmlDetalleActividad(array $ctx, array $items): string {
+    if ($items === []) {
+        return '';
+    }
+    $tipoMov = (string) ($ctx['tipo_movimiento'] ?? 'entrada');
+    $meta = [];
+    if (!empty($ctx['referencia'])) {
+        $meta[] = '<div><strong>Folio:</strong> ' . htmlspecialchars((string) $ctx['referencia'], ENT_QUOTES, 'UTF-8') . '</div>';
+    }
+    if (!empty($ctx['fecha'])) {
+        $meta[] = '<div><strong>Fecha:</strong> ' . htmlspecialchars(formatearFechaLog((string) $ctx['fecha']), ENT_QUOTES, 'UTF-8') . '</div>';
+    }
+    if (!empty($ctx['proveedor'])) {
+        $meta[] = '<div><strong>Proveedor:</strong> ' . htmlspecialchars((string) $ctx['proveedor'], ENT_QUOTES, 'UTF-8') . '</div>';
+    }
+    if (!empty($ctx['quien_recibe'])) {
+        $meta[] = '<div><strong>Recibe en almacén:</strong> ' . htmlspecialchars((string) $ctx['quien_recibe'], ENT_QUOTES, 'UTF-8') . '</div>';
+    }
+    if (!empty($ctx['quien_entrega'])) {
+        $meta[] = '<div><strong>Quien entrega:</strong> ' . htmlspecialchars((string) $ctx['quien_entrega'], ENT_QUOTES, 'UTF-8') . '</div>';
+    }
+    if (!empty($ctx['plantel'])) {
+        $meta[] = '<div><strong>Plantel:</strong> ' . htmlspecialchars((string) $ctx['plantel'], ENT_QUOTES, 'UTF-8') . '</div>';
+    }
+    if (!empty($ctx['receptor'])) {
+        $meta[] = '<div><strong>Receptor:</strong> ' . htmlspecialchars((string) $ctx['receptor'], ENT_QUOTES, 'UTF-8') . '</div>';
+    }
+    if (!empty($ctx['factura'])) {
+        $meta[] = '<div><strong>Factura:</strong> ' . htmlspecialchars((string) $ctx['factura'], ENT_QUOTES, 'UTF-8') . '</div>';
+    }
+    if (!empty($ctx['motivo'])) {
+        $meta[] = '<div><strong>Motivo del cambio:</strong> ' . htmlspecialchars((string) $ctx['motivo'], ENT_QUOTES, 'UTF-8') . '</div>';
+    }
+
+    $tituloLista = $tipoMov === 'salida' ? 'Productos que salieron del almacén' : 'Productos que entraron al almacén';
+    if (str_contains((string) ($ctx['_codigo'] ?? ''), 'CANCELAR')) {
+        $tituloLista = $tipoMov === 'salida' ? 'Productos afectados (salida cancelada)' : 'Productos afectados (entrada cancelada)';
+    }
+
+    $html = '<div class="log-detalle-bloque">';
+    if ($meta !== []) {
+        $html .= '<div class="log-detalle-meta">' . implode('', $meta) . '</div>';
+    }
+    $html .= '<div class="log-detalle-titulo-lista">' . htmlspecialchars($tituloLista, ENT_QUOTES, 'UTF-8') . '</div>';
+    $html .= formatearListaProductosHtml($items, $tipoMov);
+    $html .= '</div>';
+    return $html;
+}
+
+function formatearListaProductosHtml(array $items, string $tipoMovimiento = 'entrada'): string {
+    if ($items === []) {
+        return '';
+    }
+    $verbo = $tipoMovimiento === 'salida' ? 'Salió' : 'Entró';
+    $lineas = [];
+    foreach ($items as $it) {
+        $nombre = trim((string) ($it['nombre'] ?? 'Producto'));
+        $cant = (int) ($it['cantidad'] ?? 0);
+        $unidad = trim((string) ($it['unidad'] ?? 'und'));
+        $tipoItem = (string) ($it['tipo'] ?? '');
+        if ($tipoItem === 'catalogo' || $cant <= 0) {
+            $lineas[] = 'Alta en catálogo: <strong>' . htmlspecialchars($nombre, ENT_QUOTES, 'UTF-8') . '</strong>'
+                . ($unidad !== '' ? ' (' . htmlspecialchars($unidad, ENT_QUOTES, 'UTF-8') . ')' : '');
+            continue;
+        }
+        $lineas[] = $verbo . ': <strong>' . htmlspecialchars($nombre, ENT_QUOTES, 'UTF-8') . '</strong> — '
+            . $cant . ' ' . htmlspecialchars($unidad, ENT_QUOTES, 'UTF-8');
+    }
+    return '<ul class="log-items-list"><li>' . implode('</li><li>', $lineas) . '</li></ul>';
+}
+
+/**
+ * Intenta reconstruir detalle para registros antiguos sin detalle_items.
+ *
+ * @return array{items: list<array>, contexto: array<string, mixed>}
+ */
+function enriquecerDetalleParaVisor(string $codigo, string $detalle, array $postRaw, array $contextoGuardado = []): array {
+    if (!empty($contextoGuardado['productos']) && is_array($contextoGuardado['productos'])) {
+        return [
+            'items' => $contextoGuardado['productos'],
+            'contexto' => $contextoGuardado,
+        ];
+    }
+
+    if (preg_match('/línea\s*#(\d+)/iu', $detalle, $mLinea)) {
+        $detalleId = (int) $mLinea[1];
+        require_once __DIR__ . '/entradas.php';
+        $linea = obtenerLineaEntrada($detalleId);
+        if ($linea) {
+            $nombre = nombreProductoPorId((int) ($linea['producto_id'] ?? 0));
+            $items = [[
+                'nombre' => $nombre !== '' ? $nombre : 'Producto',
+                'cantidad' => (int) ($linea['cantidad'] ?? 0),
+                'unidad' => unidadProductoPorId((int) ($linea['producto_id'] ?? 0)),
+                'tipo' => 'entrada',
+            ]];
+            return [
+                'items' => $items,
+                'contexto' => [
+                    'tipo_movimiento' => 'entrada',
+                    'movimiento_id' => (int) ($linea['entrada_id'] ?? 0),
+                    'productos' => $items,
+                ],
+            ];
+        }
+    }
+
+    if (preg_match('/entrada\s*#(\d+)/i', $detalle, $m) || preg_match('/salida\s*#(\d+)/i', $detalle, $m) || preg_match('/#(\d+)/', $detalle, $m)) {
+        $id = (int) $m[1];
+        if (str_contains($codigo, 'ENTRADA') || str_contains($codigo, 'LINEA_ENTRADA')) {
+            require_once __DIR__ . '/entradas.php';
+            $entrada = obtenerEntradaConDetalle($id);
+            if ($entrada) {
+                $ctx = contextoDesdeEntrada($entrada);
+                return ['items' => $ctx['productos'], 'contexto' => $ctx];
+            }
+        }
+        if (str_contains($codigo, 'SALIDA')) {
+            require_once __DIR__ . '/salidas.php';
+            $salida = obtenerSalidaConDetalle($id);
+            if ($salida) {
+                $ctx = contextoDesdeSalida($salida);
+                return ['items' => $ctx['productos'], 'contexto' => $ctx];
+            }
+        }
+    }
+
+    if ($postRaw !== []) {
+        if (str_contains($codigo, 'ENTRADA')) {
+            $ctx = [
+                'tipo_movimiento' => 'entrada',
+                'fecha' => trim((string) ($postRaw['fecha'] ?? '')),
+                'proveedor' => trim((string) ($postRaw['proveedor_nuevo'] ?? ''))
+                    ?: nombreCatalogoPorId('catalogo_proveedor', (int) ($postRaw['proveedor_id'] ?? 0)),
+                'quien_recibe' => trim((string) ($postRaw['quien_recibe_nuevo'] ?? ''))
+                    ?: nombreCatalogoPorId('catalogo_quien_recibe_entrada', (int) ($postRaw['quien_recibe_id'] ?? 0)),
+                'factura' => trim((string) ($postRaw['factura'] ?? '')),
+                'motivo' => trim((string) ($postRaw['razon_modificacion'] ?? '')),
+                'productos' => productosDesdePost($postRaw, 'entrada'),
+            ];
+            return ['items' => $ctx['productos'], 'contexto' => $ctx];
+        }
+        if (str_contains($codigo, 'SALIDA')) {
+            $ctx = [
+                'tipo_movimiento' => 'salida',
+                'fecha' => trim((string) ($postRaw['fecha'] ?? '')),
+                'quien_entrega' => trim((string) ($postRaw['quien_entrega_nuevo'] ?? ''))
+                    ?: nombreCatalogoPorId('catalogo_quien_entrega', (int) ($postRaw['quien_entrega_id'] ?? 0)),
+                'plantel' => trim((string) ($postRaw['plantel_nuevo'] ?? ''))
+                    ?: nombreCatalogoPorId('catalogo_plantel', (int) ($postRaw['plantel_id'] ?? 0)),
+                'receptor' => trim((string) ($postRaw['receptor_nuevo'] ?? ''))
+                    ?: nombreCatalogoPorId('catalogo_receptor', (int) ($postRaw['receptor_id'] ?? 0)),
+                'motivo' => trim((string) ($postRaw['razon_modificacion'] ?? '')),
+                'productos' => productosDesdePost($postRaw, 'salida'),
+            ];
+            return ['items' => $ctx['productos'], 'contexto' => $ctx];
+        }
+    }
+
+    return ['items' => [], 'contexto' => []];
+}
+
 function mensajeActividadLegible(
     string $codigo,
     string $detalle,
     ?string $usuarioNombre = null,
     string $method = '',
-    string $path = ''
+    string $path = '',
+    array $contexto = []
 ): string {
     $quien = trim((string) $usuarioNombre);
     if ($quien === '') {
@@ -316,10 +700,28 @@ function mensajeActividadLegible(
     ];
 
     $verbo = $verbos[$codigo] ?? mb_strtolower($etiqueta);
-    if ($detalle !== '') {
-        return $quien . ' ' . $verbo . ' (' . $detalle . ').';
+    $productos = $contexto['productos'] ?? [];
+    $nProd = is_array($productos) ? count($productos) : 0;
+    $tipoMov = (string) ($contexto['tipo_movimiento'] ?? '');
+    $sufijoProductos = '';
+    if ($nProd > 0 && in_array($codigo, [
+        'REGISTRAR_ENTRADA', 'MODIFICAR_ENTRADA', 'REGISTRAR_SALIDA', 'MODIFICAR_SALIDA',
+        'CANCELAR_ENTRADA', 'CANCELAR_SALIDA', 'CANCELAR_LINEA_ENTRADA',
+    ], true)) {
+        $esSalida = $tipoMov === 'salida' || str_contains($codigo, 'SALIDA');
+        $esCancel = str_starts_with($codigo, 'CANCELAR');
+        if ($esCancel) {
+            $accionProd = $esSalida ? 'se anuló salida de' : 'se anuló entrada de';
+        } else {
+            $accionProd = $esSalida ? 'salieron del' : 'entraron al';
+        }
+        $sufijoProductos = ' — ' . $nProd . ' ' . ($nProd === 1 ? 'producto' : 'productos') . ' (' . $accionProd . ' almacén, ver detalle)';
     }
-    return $quien . ' ' . $verbo . '.';
+
+    if ($detalle !== '') {
+        return $quien . ' ' . $verbo . ' (' . $detalle . ')' . $sufijoProductos . '.';
+    }
+    return $quien . ' ' . $verbo . $sufijoProductos . '.';
 }
 
 function formatearFechaLog(string $fecha): string {

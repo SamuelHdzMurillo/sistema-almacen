@@ -21,7 +21,30 @@ if (!$linea) {
 }
 
 $entradaId = (int)$linea['entrada_id'];
+$entradaLog = obtenerEntradaConDetalle($entradaId);
+$lineaDetalle = null;
+if ($entradaLog) {
+    foreach (($entradaLog['detalle'] ?? []) as $d) {
+        if ((int)($d['id'] ?? 0) === $detalleId) {
+            $lineaDetalle = $d;
+            break;
+        }
+    }
+}
 $ok = cancelarLineaEntrada($detalleId);
+
+if ($ok && $entradaLog && $lineaDetalle) {
+    $ctxLog = contextoDesdeEntrada($entradaLog);
+    $ctxLog['productos'] = [[
+        'nombre' => (string)($lineaDetalle['producto_nombre'] ?? 'Producto'),
+        'cantidad' => (int)($lineaDetalle['cantidad'] ?? 0),
+        'unidad' => (string)($lineaDetalle['unidad'] ?? 'und'),
+        'tipo' => 'entrada',
+    ]];
+    $ctxLog['detalle'] = ($entradaLog['referencia'] ?? ('entrada #' . $entradaId))
+        . ' · línea: ' . ($lineaDetalle['producto_nombre'] ?? '');
+    registrarActividad('CANCELAR_LINEA_ENTRADA', $ctxLog, '/cancelar-linea-entrada.php');
+}
 
 if ($ok) {
     header('Location: ver-transaccion.php?tipo=in&id=' . $entradaId . '&cancelado_linea=1');

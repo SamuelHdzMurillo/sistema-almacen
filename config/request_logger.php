@@ -50,7 +50,12 @@ function initRequestLogging(): void {
     [$accionInferida, $detalleInferida] = inferRequestAction($method, $path, $postRaw, $queryString);
 
     // No registrar cada clic o consulta de pantalla (solo acciones relevantes).
-    if (in_array($accionInferida, ['CONSULTA', 'VER_LOGIN', 'INICIAR_SESION'], true)) {
+    $omitirAutomatico = [
+        'CONSULTA', 'VER_LOGIN', 'INICIAR_SESION',
+        'REGISTRAR_ENTRADA', 'MODIFICAR_ENTRADA', 'REGISTRAR_SALIDA', 'MODIFICAR_SALIDA',
+        'CANCELAR_ENTRADA', 'CANCELAR_SALIDA', 'CANCELAR_LINEA_ENTRADA', 'CREAR_PRODUCTO',
+    ];
+    if (in_array($accionInferida, $omitirAutomatico, true)) {
         return;
     }
 
@@ -89,6 +94,15 @@ function initRequestLogging(): void {
  * (p. ej. justo después de un login exitoso).
  */
 function registrarActividadSesion(string $codigo, string $detalle = ''): void {
+    registrarActividad($codigo, ['detalle' => $detalle], '/login.php');
+}
+
+/**
+ * Registra actividad con contexto enriquecido (productos, proveedor, plantel, etc.).
+ *
+ * @param array<string, mixed> $contexto
+ */
+function registrarActividad(string $codigo, array $contexto = [], string $ruta = ''): void {
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
@@ -101,7 +115,21 @@ function registrarActividadSesion(string $codigo, string $detalle = ''): void {
 
     $usuarioNombre = $_SESSION['usuario_nombre'] ?? null;
     $usuarioId = $_SESSION['usuario_id'] ?? null;
-    $mensajeLegible = mensajeActividadLegible($codigo, $detalle, $usuarioNombre, 'POST', '');
+
+    $detalleInferida = (string) ($contexto['detalle'] ?? resumenTextoMovimiento($contexto));
+    $detalleItems = $contexto['productos'] ?? $contexto['detalle_items'] ?? [];
+    if (!is_array($detalleItems)) {
+        $detalleItems = [];
+    }
+
+    $mensajeLegible = mensajeActividadLegible(
+        $codigo,
+        $detalleInferida,
+        $usuarioNombre,
+        'POST',
+        $ruta,
+        $contexto
+    );
 
     $entry = [
         'timestamp' => date('c'),
@@ -109,13 +137,15 @@ function registrarActividadSesion(string $codigo, string $detalle = ''): void {
         'usuario_id' => $usuarioId,
         'usuario_nombre' => $usuarioNombre,
         'method' => 'POST',
-        'ruta' => '/login.php',
-        'query_string' => '',
+        'ruta' => $ruta !== '' ? $ruta : ($_SERVER['REQUEST_URI'] ? (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '') : ''),
+        'query_string' => $_SERVER['QUERY_STRING'] ?? '',
         'ip' => $_SERVER['REMOTE_ADDR'] ?? '',
         'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
         'post_raw' => [],
         'accion_inferida' => $codigo,
-        'detalle_inferida' => $detalle,
+        'detalle_inferida' => $detalleInferida,
+        'detalle_items' => $detalleItems,
+        'contexto' => $contexto,
         'mensaje_legible' => $mensajeLegible,
     ];
 

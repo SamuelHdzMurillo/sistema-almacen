@@ -64,10 +64,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     throw new Exception('__RAZON_VACIA__');
                 }
                 actualizarSalida($editId, $fecha, $quienEntregaId, $plantelId, $receptorId, $lineas, $usuarioId, $razonModificacion);
+                $salidaLog = obtenerSalidaConDetalle($editId);
+                if ($salidaLog) {
+                    $ctxLog = contextoDesdeSalida($salidaLog);
+                    $ctxLog['motivo'] = $razonModificacion;
+                    registrarActividad('MODIFICAR_SALIDA', $ctxLog, '/nueva-salida.php?id=' . $editId);
+                }
                 header('Location: nueva-salida.php?id=' . $editId . '&modificado=1');
                 exit;
             }
             $salidaId = crearSalida($fecha, $quienEntregaId, $plantelId, $receptorId, $lineas, $usuarioId);
+            $salidaLog = obtenerSalidaConDetalle($salidaId);
+            if ($salidaLog) {
+                registrarActividad('REGISTRAR_SALIDA', contextoDesdeSalida($salidaLog), '/nueva-salida.php');
+            }
             header('Location: recibo.php?id=' . $salidaId);
             exit;
         } catch (Exception $e) {
