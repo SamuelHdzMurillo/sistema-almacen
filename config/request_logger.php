@@ -5,6 +5,8 @@
  * Registra en `logs/requests.log` en formato JSONL (una entrada por línea).
  */
 
+require_once __DIR__ . '/../includes/log_actividad.php';
+
 function initRequestLogging(): void {
     static $initialized = false;
     if ($initialized) {
@@ -45,7 +47,20 @@ function initRequestLogging(): void {
     // POST raw (incluye campos sensibles si los envías).
     $postRaw = is_array($_POST ?? null) ? $_POST : [];
 
-    [$accionInferida, $detalleInferida] = inferRequestAction($method, $path, $postRaw);
+    [$accionInferida, $detalleInferida] = inferRequestAction($method, $path, $postRaw, $queryString);
+
+    // No registrar cada clic o consulta de pantalla (solo acciones relevantes).
+    if (in_array($accionInferida, ['CONSULTA', 'VER_LOGIN', 'INICIAR_SESION'], true)) {
+        return;
+    }
+
+    $mensajeLegible = mensajeActividadLegible(
+        $accionInferida,
+        $detalleInferida,
+        $GLOBALS['APP_USER_NAME'] ?? null,
+        $method,
+        $path
+    );
 
     $entry = [
         'timestamp' => date('c'),
@@ -60,6 +75,7 @@ function initRequestLogging(): void {
         'post_raw' => $postRaw,
         'accion_inferida' => $accionInferida,
         'detalle_inferida' => $detalleInferida,
+        'mensaje_legible' => $mensajeLegible,
     ];
 
     $line = json_encode($entry, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -69,61 +85,44 @@ function initRequestLogging(): void {
 }
 
 /**
- * Heurísticas simples para hacer legibles los logs de petición.
- * (No cambia seguridad; solo “traduce” ruta+POST a un texto.)
+ * Registra una actividad después de que la sesión ya esté establecida
+ * (p. ej. justo después de un login exitoso).
  */
-function inferRequestAction(string $method, string $path, array $postRaw): array {
-    if ($method !== 'POST') {
-        return ['GET', $path];
+function registrarActividadSesion(string $codigo, string $detalle = ''): void {
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
     }
 
-    $basename = strtolower(basename($path));
-
-    // Login
-    if ($basename === 'login.php') {
-        $usuario = isset($postRaw['usuario']) ? (string)$postRaw['usuario'] : '';
-        return ['LOGIN', $usuario !== '' ? 'usuario=' . $usuario : ''];
+    $logDir = __DIR__ . '/../logs';
+    if (!is_dir($logDir)) {
+        @mkdir($logDir, 0775, true);
     }
+    $logFile = $logDir . '/requests.log';
 
-    if ($basename === 'productos.php' && isset($postRaw['crear'])) {
-        $nombre = trim((string)($postRaw['nombre'] ?? ''));
-        $codigo = trim((string)($postRaw['codigo'] ?? ''));
-        return ['CREAR_PRODUCTO', trim($nombre) !== '' ? "nombre={$nombre}" . ($codigo !== '' ? " codigo={$codigo}" : '') : ''];
+    $usuarioNombre = $_SESSION['usuario_nombre'] ?? null;
+    $usuarioId = $_SESSION['usuario_id'] ?? null;
+    $mensajeLegible = mensajeActividadLegible($codigo, $detalle, $usuarioNombre, 'POST', '');
+
+    $entry = [
+        'timestamp' => date('c'),
+        'request_id' => $GLOBALS['APP_REQUEST_ID'] ?? generateRequestId(),
+        'usuario_id' => $usuarioId,
+        'usuario_nombre' => $usuarioNombre,
+        'method' => 'POST',
+        'ruta' => '/login.php',
+        'query_string' => '',
+        'ip' => $_SERVER['REMOTE_ADDR'] ?? '',
+        'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
+        'post_raw' => [],
+        'accion_inferida' => $codigo,
+        'detalle_inferida' => $detalle,
+        'mensaje_legible' => $mensajeLegible,
+    ];
+
+    $line = json_encode($entry, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if ($line !== false) {
+        @file_put_contents($logFile, $line . PHP_EOL, FILE_APPEND | LOCK_EX);
     }
-
-    if ($basename === 'nueva-entrada.php') {
-        $fecha = trim((string)($postRaw['fecha'] ?? ''));
-        $proveedorId = isset($postRaw['proveedor_id']) && $postRaw['proveedor_id'] !== '' ? (string)$postRaw['proveedor_id'] : '';
-        $productoIds = isset($postRaw['producto_id']) && is_array($postRaw['producto_id']) ? $postRaw['producto_id'] : [];
-        $lineas = is_array($productoIds) ? count($productoIds) : 0;
-        return ['REGISTRAR_ENTRADA', ($fecha !== '' ? "fecha={$fecha} " : '') . ($proveedorId !== '' ? "proveedor_id={$proveedorId} " : '') . "lineas={$lineas}"];
-    }
-
-    if ($basename === 'nueva-salida.php') {
-        $fecha = trim((string)($postRaw['fecha'] ?? ''));
-        $plantelId = isset($postRaw['plantel_id']) && $postRaw['plantel_id'] !== '' ? (string)$postRaw['plantel_id'] : '';
-        $productoIds = isset($postRaw['producto_id']) && is_array($postRaw['producto_id']) ? $postRaw['producto_id'] : [];
-        $lineas = is_array($productoIds) ? count($productoIds) : 0;
-        return ['REGISTRAR_SALIDA', ($fecha !== '' ? "fecha={$fecha} " : '') . ($plantelId !== '' ? "plantel_id={$plantelId} " : '') . "lineas={$lineas}"];
-    }
-
-    if ($basename === 'cancelar-entrada.php' && isset($postRaw['confirmar'])) {
-        $id = isset($postRaw['id']) ? (string)$postRaw['id'] : '';
-        return ['CANCELAR_ENTRADA', $id !== '' ? "id={$id}" : ''];
-    }
-
-    if ($basename === 'cancelar-salida.php' && isset($postRaw['confirmar'])) {
-        $id = isset($postRaw['id']) ? (string)$postRaw['id'] : '';
-        return ['CANCELAR_SALIDA', $id !== '' ? "id={$id}" : ''];
-    }
-
-    if ($basename === 'cancelar-linea-entrada.php') {
-        $detalleId = isset($postRaw['id']) ? (string)$postRaw['id'] : '';
-        return ['CANCELAR_LINEA_ENTRADA', $detalleId !== '' ? "detalle_id={$detalleId}" : ''];
-    }
-
-    // Fallback
-    return ['POST', $basename];
 }
 
 function generateRequestId(): string {

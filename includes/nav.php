@@ -41,7 +41,7 @@ $nav_items = [
 
 if ($esAdmin) {
     $nav_items['inventario-global'] = ['url' => 'inventario-global.php', 'label' => 'Inventario global'];
-    $nav_items['logs'] = ['url' => 'ver-logs.php', 'label' => 'Logs'];
+    $nav_items['logs'] = ['url' => 'ver-logs.php', 'label' => 'Actividad'];
     $nav_items['almacenes-admin'] = ['url' => 'almacenes-admin.php', 'label' => 'Almacenes'];
 }
 ?>

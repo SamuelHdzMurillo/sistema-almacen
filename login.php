@@ -12,6 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($user === '' || $pass === '') {
         $error = 'Ingrese usuario y contraseña.';
     } elseif (login($user, $pass)) {
+        registrarActividadSesion('INICIAR_SESION', $user);
         header('Location: ' . ($_GET['redir'] ?? 'index.php'));
         exit;
     } else {
