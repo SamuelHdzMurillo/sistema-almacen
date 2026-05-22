@@ -1,9 +1,10 @@
 -- Sistema de Almacén - Auditoría (antes/después + request_id/usuario)
--- Ejecutar en MySQL para habilitar triggers de auditoría.
+--
+-- NOTA: En instalación nueva, todo esto ya está en database/schema.sql.
+-- Solo ejecuta este archivo si creaste la BD antes de unificar el esquema
+-- y te faltan db_audit o los triggers.
 
 SET NAMES utf8mb4;
-
-CREATE DATABASE IF NOT EXISTS sistema_almacen CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE sistema_almacen;
 
 -- Tabla de auditoría (log de cambios)
@@ -138,6 +139,7 @@ BEGIN
       'id', NEW.id,
       'referencia', NEW.referencia,
       'factura', NEW.factura,
+      'factura_doc', NEW.factura_doc,
       'fecha', NEW.fecha,
       'proveedor_id', NEW.proveedor_id,
       'quien_recibe_id', NEW.quien_recibe_id,
@@ -165,6 +167,7 @@ BEGIN
       'id', OLD.id,
       'referencia', OLD.referencia,
       'factura', OLD.factura,
+      'factura_doc', OLD.factura_doc,
       'fecha', OLD.fecha,
       'proveedor_id', OLD.proveedor_id,
       'quien_recibe_id', OLD.quien_recibe_id,
@@ -178,6 +181,7 @@ BEGIN
       'id', NEW.id,
       'referencia', NEW.referencia,
       'factura', NEW.factura,
+      'factura_doc', NEW.factura_doc,
       'fecha', NEW.fecha,
       'proveedor_id', NEW.proveedor_id,
       'quien_recibe_id', NEW.quien_recibe_id,
@@ -205,6 +209,7 @@ BEGIN
       'id', OLD.id,
       'referencia', OLD.referencia,
       'factura', OLD.factura,
+      'factura_doc', OLD.factura_doc,
       'fecha', OLD.fecha,
       'proveedor_id', OLD.proveedor_id,
       'quien_recibe_id', OLD.quien_recibe_id,
@@ -340,6 +345,7 @@ BEGIN
       'plantel_id', NEW.plantel_id,
       'receptor_id', NEW.receptor_id,
       'almacen_id', NEW.almacen_id,
+      'recibo_entrega_doc', NEW.recibo_entrega_doc,
       'estado', NEW.estado,
       'created_at', NEW.created_at,
       'updated_at', NEW.updated_at,
@@ -367,6 +373,7 @@ BEGIN
       'plantel_id', OLD.plantel_id,
       'receptor_id', OLD.receptor_id,
       'almacen_id', OLD.almacen_id,
+      'recibo_entrega_doc', OLD.recibo_entrega_doc,
       'estado', OLD.estado,
       'created_at', OLD.created_at,
       'updated_at', OLD.updated_at,
@@ -380,6 +387,7 @@ BEGIN
       'plantel_id', NEW.plantel_id,
       'receptor_id', NEW.receptor_id,
       'almacen_id', NEW.almacen_id,
+      'recibo_entrega_doc', NEW.recibo_entrega_doc,
       'estado', NEW.estado,
       'created_at', NEW.created_at,
       'updated_at', NEW.updated_at,
@@ -407,6 +415,7 @@ BEGIN
       'plantel_id', OLD.plantel_id,
       'receptor_id', OLD.receptor_id,
       'almacen_id', OLD.almacen_id,
+      'recibo_entrega_doc', OLD.recibo_entrega_doc,
       'estado', OLD.estado,
       'created_at', OLD.created_at,
       'updated_at', OLD.updated_at,

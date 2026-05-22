@@ -9,11 +9,17 @@ Sistema sencillo para el control de entradas y salidas de productos, con inventa
 
 ## Instalación
 
-1. **Base de datos**
+1. **Base de datos (un solo paso)**
 
-   - Abre **phpMyAdmin** (http://localhost/phpmyadmin) o la consola de MySQL.
-   - Ejecuta el contenido de `database/schema.sql`.
-   - Se creará la base `sistema_almacen`, tablas (usuarios, productos, entradas, detalle_entradas, salidas, detalle_salidas) y usuario inicial.
+   Ejecuta **una vez** `database/schema.sql`. Incluye tablas, catálogos, almacenes, auditoría, datos iniciales y usuario admin. No hace falta correr los `migrar_*.sql` en una instalación nueva.
+
+   - **phpMyAdmin:** http://localhost/phpmyadmin → Importar → `database/schema.sql`
+   - **Consola (XAMPP):** `database\install.bat` o:
+     ```bat
+     c:\xampp\mysql\bin\mysql.exe -u root < database\schema.sql
+     ```
+
+   Credenciales por defecto: base `sistema_almacen`, usuario **admin**, contraseña **password**.
 
 2. **Configuración**
 
@@ -24,18 +30,24 @@ Sistema sencillo para el control de entradas y salidas de productos, con inventa
    - Abre **http://localhost/sistema-almacen/**
    - Inicia sesión con usuario **admin** y contraseña **password** (cámbiala en producción).
 
+4. **Actualizar una base antigua**
+
+   Si ya tenías `sistema_almacen` de una versión anterior, revisa `database/LEEME-MIGRACIONES.txt` y ejecuta solo los scripts que te falten.
+
 ## Estructura de tablas
 
-| Tabla              | Uso                                           |
-| ------------------ | --------------------------------------------- |
-| `usuarios`         | Login (usuario, clave)                        |
-| `productos`        | Catálogo de productos                         |
-| `entradas`         | Cabecera de cada entrada (fecha, responsable) |
-| `detalle_entradas` | Líneas: producto, cantidad                    |
-| `salidas`          | Cabecera de cada salida (fecha, receptor)     |
-| `detalle_salidas`  | Líneas: producto, cantidad                    |
+| Tabla                        | Uso                                              |
+| ---------------------------- | ------------------------------------------------ |
+| `almacenes`                  | Almacenes del sistema                            |
+| `usuarios`                   | Login (usuario, clave, almacén)                  |
+| `productos`                  | Catálogo de productos                            |
+| `catalogo_*`                 | Proveedores, receptores, planteles, etc.         |
+| `entradas` / `detalle_entradas` | Entradas y líneas (factura, docs, estado línea) |
+| `salidas` / `detalle_salidas`   | Salidas y líneas (recibo firmado adjunto)      |
+| `transaccion_modificaciones` | Historial de ediciones con razón                 |
+| `db_audit`                     | Auditoría automática (triggers)                  |
 
-El inventario se calcula como suma de entradas menos suma de salidas por producto.
+El inventario se calcula como suma de entradas activas menos suma de salidas por producto.
 
 ## Funcionalidad
 
@@ -50,6 +62,3 @@ El inventario se calcula como suma de entradas menos suma de salidas por product
 
 Cada salida genera un recibo con: nombre del receptor, fecha, lista de artículos y cantidades. Se puede imprimir desde la pantalla del recibo.
 
-## Migración (si tenías versión anterior con zonas)
-
-Si ya tenías la base de datos con zonas, ejecuta `database/migrar_quitar_zonas.sql` y ajusta los nombres de las claves foráneas si tu MySQL los generó de otra forma.

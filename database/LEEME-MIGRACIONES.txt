@@ -1,0 +1,22 @@
+INSTALACION NUEVA (cualquier computadora)
+=======================================
+Ejecuta UNA sola vez: database/schema.sql
+  - phpMyAdmin: pestaña SQL, importar o pegar el archivo
+  - O doble clic en database/install.bat (XAMPP por defecto)
+
+No necesitas los archivos migrar_*.sql en una base nueva.
+
+BASE DE DATOS ANTIGUA (ya tenias sistema_almacen)
+==================================================
+Ejecuta solo los migrar_*.sql que te falten, en orden aproximado:
+  migrar_quitar_zonas.sql
+  migrar_almacenes.sql
+  migrar_horas_y_usuario.sql
+  migrar_entradas_proveedor_quien_recibe.sql
+  migrar_catalogos_salida.sql
+  migrar_agregar_factura_entradas.sql
+  migrar_agregar_doc_factura_entradas.sql
+  migrar_agregar_recibo_salidas.sql
+  migrar_estado_detalle_entradas.sql
+  migrar_productos_nombre_unique.sql
+  audit_setup.sql (si no tienes triggers de auditoria)
