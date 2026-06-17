@@ -16,6 +16,30 @@ $entradas = listarEntradasPorMes($anio, $mes);
 $salidas  = listarSalidasPorMes($anio, $mes);
 $resumen  = resumenMes($anio, $mes);
 $inventarioActual = inventarioPorProducto();
+
+// Listas para los filtros del inventario actual (proveedores y unidades distintas).
+$filtroProveedores = [];
+$filtroUnidades = [];
+foreach ($inventarioActual as $inv) {
+    $unidad = trim((string)($inv['unidad'] ?? ''));
+    if ($unidad !== '') {
+        $filtroUnidades[$unidad] = true;
+    }
+    $provStr = trim((string)($inv['proveedores'] ?? ''));
+    if ($provStr !== '') {
+        foreach (explode(' | ', $provStr) as $prov) {
+            $prov = trim($prov);
+            if ($prov !== '') {
+                $filtroProveedores[$prov] = true;
+            }
+        }
+    }
+}
+$filtroProveedores = array_keys($filtroProveedores);
+$filtroUnidades = array_keys($filtroUnidades);
+sort($filtroProveedores, SORT_NATURAL | SORT_FLAG_CASE);
+sort($filtroUnidades, SORT_NATURAL | SORT_FLAG_CASE);
+
 $mesNombre = $mesesNombres[$mes] ?? 'Mes';
 $periodoTexto = $mesNombre . ' ' . $anio;
 $vista = isset($_GET['vista']) && $_GET['vista'] === 'mes' ? 'mes' : 'actual';
@@ -31,6 +55,24 @@ $vista = isset($_GET['vista']) && $_GET['vista'] === 'mes' ? 'mes' : 'actual';
   <style>
     .inventario-link-historial { color: inherit; text-decoration: none; border-bottom: 1px dashed transparent; }
     .inventario-link-historial:hover { color: #1d4ed8; border-bottom-color: #1d4ed8; }
+    .inventario-filtros {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 0.85rem 1rem;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .inventario-filtros .inventario-filtro-campo { flex: 1 1 180px; min-width: 150px; }
+    .inventario-filtros .inventario-filtro-buscar-campo { flex: 2 1 260px; min-width: 220px; }
+    .inventario-filtros .inventario-form-select { width: 100%; min-width: 0; }
+    .inventario-filtro-limpiar { flex: 0 0 auto; white-space: nowrap; }
+    .inventario-col-proveedor { color: var(--text-muted); font-size: 0.9rem; }
+    @media (max-width: 640px) {
+      .inventario-filtros .inventario-filtro-campo,
+      .inventario-filtros .inventario-filtro-buscar-campo { flex: 1 1 100%; }
+      .inventario-filtro-limpiar { width: 100%; }
+    }
   </style>
 </head>
 <body class="pagina-inventario">
@@ -90,11 +132,39 @@ $vista = isset($_GET['vista']) && $_GET['vista'] === 'mes' ? 'mes' : 'actual';
             <span class="inventario-panel-contador" id="inventario-contador-actual"><?= count($inventarioActual) ?></span>
           </header>
           <div class="inventario-panel-cuerpo">
-            <div class="inventario-filtro-buscar">
-              <label for="inventario-buscador" class="inventario-form-label">
+            <div class="inventario-filtros" id="inventario-filtros">
+              <label for="inventario-buscador" class="inventario-form-label inventario-filtro-campo inventario-filtro-buscar-campo">
                 <span class="inventario-form-etiqueta">Buscar</span>
-                <input type="search" id="inventario-buscador" class="inventario-form-input" placeholder="Código, producto o unidad…" autocomplete="off" aria-label="Buscar en inventario">
+                <input type="search" id="inventario-buscador" class="inventario-form-input" placeholder="Código, producto, unidad o proveedor…" autocomplete="off" aria-label="Buscar en inventario">
               </label>
+              <label for="inventario-filtro-proveedor" class="inventario-form-label inventario-filtro-campo">
+                <span class="inventario-form-etiqueta">Proveedor</span>
+                <select id="inventario-filtro-proveedor" class="inventario-form-select">
+                  <option value="">Todos</option>
+                  <?php foreach ($filtroProveedores as $prov): ?>
+                    <option value="<?= htmlspecialchars(mb_strtolower($prov)) ?>"><?= htmlspecialchars($prov) ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </label>
+              <label for="inventario-filtro-unidad" class="inventario-form-label inventario-filtro-campo">
+                <span class="inventario-form-etiqueta">Unidad</span>
+                <select id="inventario-filtro-unidad" class="inventario-form-select">
+                  <option value="">Todas</option>
+                  <?php foreach ($filtroUnidades as $unidad): ?>
+                    <option value="<?= htmlspecialchars(mb_strtolower($unidad)) ?>"><?= htmlspecialchars($unidad) ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </label>
+              <label for="inventario-filtro-stock" class="inventario-form-label inventario-filtro-campo">
+                <span class="inventario-form-etiqueta">Existencia</span>
+                <select id="inventario-filtro-stock" class="inventario-form-select">
+                  <option value="">Todas</option>
+                  <option value="positivo">Con stock (&gt; 0)</option>
+                  <option value="cero">Sin stock (= 0)</option>
+                  <option value="negativo">Stock negativo (&lt; 0)</option>
+                </select>
+              </label>
+              <button type="button" id="inventario-filtro-limpiar" class="btn btn-secondary inventario-filtro-limpiar">Limpiar</button>
             </div>
             <div class="inventario-tabla-wrap">
               <table class="inventario-tabla inventario-tabla-actual">
@@ -102,31 +172,39 @@ $vista = isset($_GET['vista']) && $_GET['vista'] === 'mes' ? 'mes' : 'actual';
                   <tr>
                     <th class="inventario-col-codigo">Código</th>
                     <th class="inventario-col-producto">Producto</th>
+                    <th class="inventario-col-proveedor">Proveedor(es)</th>
                     <th class="inventario-col-unidad">Unidad</th>
                     <th class="inventario-th-num inventario-col-cantidad">Cantidad actual</th>
                   </tr>
                 </thead>
                 <tbody>
                   <?php if (empty($inventarioActual)): ?>
-                    <tr><td colspan="4" class="inventario-empty">No hay productos registrados.</td></tr>
+                    <tr><td colspan="5" class="inventario-empty">No hay productos registrados.</td></tr>
                   <?php else: ?>
                     <?php
                     $totalUnidades = 0;
                     foreach ($inventarioActual as $inv):
                       $stock = (int) $inv['stock'];
                       $totalUnidades += $stock;
+                      $proveedoresProd = trim((string)($inv['proveedores'] ?? ''));
+                      $estadoStock = $stock > 0 ? 'positivo' : ($stock < 0 ? 'negativo' : 'cero');
                     ?>
-                      <tr class="inventario-fila-producto" data-busqueda="<?= htmlspecialchars(mb_strtolower(($inv['codigo'] ?? '') . ' ' . ($inv['nombre'] ?? '') . ' ' . ($inv['unidad'] ?? ''))) ?>">
+                      <tr class="inventario-fila-producto"
+                          data-busqueda="<?= htmlspecialchars(mb_strtolower(($inv['codigo'] ?? '') . ' ' . ($inv['nombre'] ?? '') . ' ' . ($inv['unidad'] ?? '') . ' ' . $proveedoresProd)) ?>"
+                          data-unidad="<?= htmlspecialchars(mb_strtolower((string)($inv['unidad'] ?? ''))) ?>"
+                          data-proveedores="<?= htmlspecialchars(mb_strtolower($proveedoresProd)) ?>"
+                          data-stock-estado="<?= $estadoStock ?>">
                         <td class="inventario-col-codigo"><?= htmlspecialchars($inv['codigo'] ?? '—') ?></td>
                         <td class="inventario-col-producto">
                           <a href="historial-producto.php?id=<?= (int)$inv['id'] ?>" class="inventario-link-historial" title="Ver historial del producto"><strong><?= htmlspecialchars($inv['nombre']) ?></strong></a>
                         </td>
+                        <td class="inventario-col-proveedor"><?= $proveedoresProd !== '' ? htmlspecialchars($proveedoresProd) : '—' ?></td>
                         <td class="inventario-col-unidad"><?= htmlspecialchars($inv['unidad'] ?? 'und') ?></td>
                         <td class="inventario-th-num inventario-col-cantidad <?= $stock > 0 ? 'qty-pos' : ($stock < 0 ? 'qty-neg' : '') ?>"><?= number_format($stock) ?></td>
                       </tr>
                     <?php endforeach; ?>
                     <tr class="inventario-tabla-total inventario-fila-total">
-                      <td colspan="3" class="inventario-td-total-label"><strong>Total unidades en almacén</strong></td>
+                      <td colspan="4" class="inventario-td-total-label"><strong>Total unidades en almacén</strong></td>
                       <td class="inventario-th-num inventario-col-cantidad inventario-td-total-num <?= $totalUnidades >= 0 ? 'qty-pos' : 'qty-neg' ?>"><?= number_format($totalUnidades) ?></td>
                     </tr>
                   <?php endif; ?>
@@ -288,26 +366,53 @@ $vista = isset($_GET['vista']) && $_GET['vista'] === 'mes' ? 'mes' : 'actual';
   <script>
   (function() {
     var buscador = document.getElementById('inventario-buscador');
+    var selProveedor = document.getElementById('inventario-filtro-proveedor');
+    var selUnidad = document.getElementById('inventario-filtro-unidad');
+    var selStock = document.getElementById('inventario-filtro-stock');
+    var btnLimpiar = document.getElementById('inventario-filtro-limpiar');
     var panel = document.querySelector('.inventario-panel-actual');
     if (!buscador || !panel) return;
     var filas = panel.querySelectorAll('.inventario-fila-producto');
     var filaTotal = panel.querySelector('.inventario-fila-total');
     var contador = document.getElementById('inventario-contador-actual');
     var totalProductos = filas.length;
+
     function filtrar() {
       var q = (buscador.value || '').trim().toLowerCase();
+      var proveedor = selProveedor ? selProveedor.value.toLowerCase() : '';
+      var unidad = selUnidad ? selUnidad.value.toLowerCase() : '';
+      var stock = selStock ? selStock.value : '';
+      var hayFiltro = q || proveedor || unidad || stock;
       var visibles = 0;
       filas.forEach(function(tr) {
         var texto = (tr.getAttribute('data-busqueda') || '').toLowerCase();
-        var coincide = !q || texto.indexOf(q) !== -1;
+        var provFila = (tr.getAttribute('data-proveedores') || '').toLowerCase();
+        var unidadFila = (tr.getAttribute('data-unidad') || '').toLowerCase();
+        var stockFila = tr.getAttribute('data-stock-estado') || '';
+        var coincide = (!q || texto.indexOf(q) !== -1)
+          && (!proveedor || provFila.indexOf(proveedor) !== -1)
+          && (!unidad || unidadFila === unidad)
+          && (!stock || stockFila === stock);
         tr.style.display = coincide ? '' : 'none';
         if (coincide) visibles++;
       });
-      if (filaTotal) filaTotal.style.display = q ? (visibles === 0 ? 'none' : '') : '';
-      if (contador) contador.textContent = q ? visibles + ' / ' + totalProductos : totalProductos;
+      if (filaTotal) filaTotal.style.display = hayFiltro ? (visibles === 0 ? 'none' : '') : '';
+      if (contador) contador.textContent = hayFiltro ? visibles + ' / ' + totalProductos : totalProductos;
     }
+
     buscador.addEventListener('input', filtrar);
     buscador.addEventListener('keyup', filtrar);
+    if (selProveedor) selProveedor.addEventListener('change', filtrar);
+    if (selUnidad) selUnidad.addEventListener('change', filtrar);
+    if (selStock) selStock.addEventListener('change', filtrar);
+    if (btnLimpiar) btnLimpiar.addEventListener('click', function() {
+      buscador.value = '';
+      if (selProveedor) selProveedor.value = '';
+      if (selUnidad) selUnidad.value = '';
+      if (selStock) selStock.value = '';
+      filtrar();
+      buscador.focus();
+    });
   })();
   </script>
 </body>

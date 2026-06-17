@@ -17,12 +17,20 @@ function inventarioPorProducto(?int $almacenId = null): array {
            JOIN salidas s ON s.id = ds.salida_id
            WHERE ds.producto_id = p.id
              AND s.almacen_id = ?
-             AND s.estado != 'cancelada') AS stock
+             AND s.estado != 'cancelada') AS stock,
+          (SELECT GROUP_CONCAT(DISTINCT prov.nombre ORDER BY prov.nombre SEPARATOR ' | ')
+           FROM detalle_entradas de2
+           JOIN entradas e2 ON e2.id = de2.entrada_id
+           LEFT JOIN catalogo_proveedor prov ON prov.id = e2.proveedor_id
+           WHERE de2.producto_id = p.id
+             AND e2.almacen_id = ?
+             AND e2.estado != 'cancelada'
+             AND (de2.estado = 'activa' OR de2.estado IS NULL)) AS proveedores
         FROM productos p
     ";
 
     $stmt = $pdo->prepare($sql);
-    $stmt->execute([$almacenId, $almacenId]);
+    $stmt->execute([$almacenId, $almacenId, $almacenId]);
     return $stmt->fetchAll();
 }
 
