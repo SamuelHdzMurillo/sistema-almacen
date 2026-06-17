@@ -28,6 +28,10 @@ $vista = isset($_GET['vista']) && $_GET['vista'] === 'mes' ? 'mes' : 'actual';
   <title>Inventario — <?= htmlspecialchars($periodoTexto) ?> - Sistema de Almacén</title>
   <link rel="icon" type="image/webp" href="assets/css/img/logo_cecyte_grande.webp">
   <link rel="stylesheet" href="assets/css/style.css?v=15">
+  <style>
+    .inventario-link-historial { color: inherit; text-decoration: none; border-bottom: 1px dashed transparent; }
+    .inventario-link-historial:hover { color: #1d4ed8; border-bottom-color: #1d4ed8; }
+  </style>
 </head>
 <body class="pagina-inventario">
   <div class="container">
@@ -82,7 +86,7 @@ $vista = isset($_GET['vista']) && $_GET['vista'] === 'mes' ? 'mes' : 'actual';
         <h2 class="inventario-seccion-titulo">Inventario actual</h2>
         <article class="inventario-panel inventario-panel-actual">
           <header class="inventario-panel-cabecera">
-            <h3 class="inventario-panel-titulo">Stock por producto</h3>
+            <h3 class="inventario-panel-titulo">Stock por producto <span style="font-weight:400;font-size:0.8rem;color:#6b7280;">(clic en un producto para ver su historial)</span></h3>
             <span class="inventario-panel-contador" id="inventario-contador-actual"><?= count($inventarioActual) ?></span>
           </header>
           <div class="inventario-panel-cuerpo">
@@ -114,7 +118,9 @@ $vista = isset($_GET['vista']) && $_GET['vista'] === 'mes' ? 'mes' : 'actual';
                     ?>
                       <tr class="inventario-fila-producto" data-busqueda="<?= htmlspecialchars(mb_strtolower(($inv['codigo'] ?? '') . ' ' . ($inv['nombre'] ?? '') . ' ' . ($inv['unidad'] ?? ''))) ?>">
                         <td class="inventario-col-codigo"><?= htmlspecialchars($inv['codigo'] ?? '—') ?></td>
-                        <td class="inventario-col-producto"><strong><?= htmlspecialchars($inv['nombre']) ?></strong></td>
+                        <td class="inventario-col-producto">
+                          <a href="historial-producto.php?id=<?= (int)$inv['id'] ?>" class="inventario-link-historial" title="Ver historial del producto"><strong><?= htmlspecialchars($inv['nombre']) ?></strong></a>
+                        </td>
                         <td class="inventario-col-unidad"><?= htmlspecialchars($inv['unidad'] ?? 'und') ?></td>
                         <td class="inventario-th-num inventario-col-cantidad <?= $stock > 0 ? 'qty-pos' : ($stock < 0 ? 'qty-neg' : '') ?>"><?= number_format($stock) ?></td>
                       </tr>

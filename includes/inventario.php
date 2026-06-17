@@ -62,6 +62,93 @@ function capacidadTotal(?int $almacenId = null): array {
 }
 
 /**
+ * Historial completo de un producto en un almacén:
+ *  - datos del producto y stock actual
+ *  - entradas (de qué factura / proveedor llegó)
+ *  - salidas (a qué plantel / receptor se fue)
+ *  - resumen agrupado por plantel y por proveedor
+ */
+function historialProducto(int $productoId, ?int $almacenId = null): ?array {
+    $pdo = getDB();
+    $almacenId = $almacenId !== null ? (int)$almacenId : getAlmacenActivo();
+
+    $stmt = $pdo->prepare('SELECT id, codigo, nombre, descripcion, unidad FROM productos WHERE id = ? LIMIT 1');
+    $stmt->execute([$productoId]);
+    $producto = $stmt->fetch();
+    if (!$producto) {
+        return null;
+    }
+
+    // Entradas: de qué factura / proveedor llegó este producto.
+    $stEnt = $pdo->prepare("
+        SELECT e.id AS entrada_id, e.referencia, e.fecha, e.factura, e.factura_doc,
+               prov.nombre AS proveedor_nombre, qr.nombre AS quien_recibe_nombre,
+               de.cantidad
+        FROM detalle_entradas de
+        JOIN entradas e ON e.id = de.entrada_id
+        LEFT JOIN catalogo_proveedor prov ON prov.id = e.proveedor_id
+        LEFT JOIN catalogo_quien_recibe_entrada qr ON qr.id = e.quien_recibe_id
+        WHERE de.producto_id = ?
+          AND e.almacen_id = ?
+          AND e.estado != 'cancelada'
+          AND (de.estado = 'activa' OR de.estado IS NULL)
+        ORDER BY e.fecha DESC, e.id DESC
+    ");
+    $stEnt->execute([$productoId, $almacenId]);
+    $entradas = $stEnt->fetchAll();
+
+    // Salidas: a qué plantel / receptor se fue este producto.
+    $stSal = $pdo->prepare("
+        SELECT s.id AS salida_id, s.referencia, s.fecha,
+               pl.nombre AS plantel_nombre, rec.nombre AS receptor_nombre, qe.nombre AS quien_entrega_nombre,
+               ds.cantidad
+        FROM detalle_salidas ds
+        JOIN salidas s ON s.id = ds.salida_id
+        LEFT JOIN catalogo_plantel pl ON pl.id = s.plantel_id
+        LEFT JOIN catalogo_receptor rec ON rec.id = s.receptor_id
+        LEFT JOIN catalogo_quien_entrega qe ON qe.id = s.quien_entrega_id
+        WHERE ds.producto_id = ?
+          AND s.almacen_id = ?
+          AND s.estado != 'cancelada'
+        ORDER BY s.fecha DESC, s.id DESC
+    ");
+    $stSal->execute([$productoId, $almacenId]);
+    $salidas = $stSal->fetchAll();
+
+    $totalEntradas = 0;
+    $porProveedor = [];
+    foreach ($entradas as $e) {
+        $cant = (int) $e['cantidad'];
+        $totalEntradas += $cant;
+        $prov = $e['proveedor_nombre'] ?? '—';
+        $porProveedor[$prov] = ($porProveedor[$prov] ?? 0) + $cant;
+    }
+
+    $totalSalidas = 0;
+    $porPlantel = [];
+    foreach ($salidas as $s) {
+        $cant = (int) $s['cantidad'];
+        $totalSalidas += $cant;
+        $plantel = $s['plantel_nombre'] ?? '—';
+        $porPlantel[$plantel] = ($porPlantel[$plantel] ?? 0) + $cant;
+    }
+
+    arsort($porPlantel);
+    arsort($porProveedor);
+
+    return [
+        'producto'       => $producto,
+        'entradas'       => $entradas,
+        'salidas'        => $salidas,
+        'total_entradas' => $totalEntradas,
+        'total_salidas'  => $totalSalidas,
+        'stock'          => $totalEntradas - $totalSalidas,
+        'por_plantel'    => $porPlantel,
+        'por_proveedor'  => $porProveedor,
+    ];
+}
+
+/**
  * Matriz de stock: cada producto con cantidad por almacén y total general.
  * Solo para vista administrativa global.
  */
